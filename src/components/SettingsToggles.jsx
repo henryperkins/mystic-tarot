@@ -1,6 +1,7 @@
 import React from 'react';
+import { stopTTS } from '../lib/audio.js';
 
-export function SettingsToggles({ voiceOn, setVoiceOn, ttsAudioRef, ambienceOn, setAmbienceOn }) {
+export function SettingsToggles({ voiceOn, setVoiceOn, ambienceOn, setAmbienceOn }) {
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
       <label className="flex items-center gap-2 cursor-pointer">
@@ -10,9 +11,8 @@ export function SettingsToggles({ voiceOn, setVoiceOn, ttsAudioRef, ambienceOn, 
           onChange={event => {
             const checked = event.target.checked;
             setVoiceOn(checked);
-            if (!checked && ttsAudioRef.current) {
-              ttsAudioRef.current.pause();
-              ttsAudioRef.current = null;
+            if (!checked) {
+              stopTTS();
             }
           }}
           className="accent-amber-500"

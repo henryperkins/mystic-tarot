@@ -220,6 +220,21 @@ function cacheAudio(key, audioDataUri) {
   }
 }
 
+/**
+ * Stop any currently playing TTS audio.
+ * This is called when the user toggles voice off in SettingsToggles.
+ */
+export function stopTTS() {
+  try {
+    if (ttsAudio) {
+      ttsAudio.pause();
+      ttsAudio = null;
+    }
+  } catch {
+    // ignore errors
+  }
+}
+
 export function cleanupAudio() {
   try {
     if (flipAudio) {

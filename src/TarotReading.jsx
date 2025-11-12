@@ -30,6 +30,7 @@ export default function TarotReading() {
   const [voiceOn, setVoiceOn] = useState(false);
   const [reflections, setReflections] = useState({});
   const [ambienceOn, setAmbienceOn] = useState(false);
+  const [apiHealthBanner, setApiHealthBanner] = useState(null);
 
   const knockTimesRef = useRef([]);
   const shuffleTimeoutRef = useRef(null);
@@ -51,6 +52,35 @@ export default function TarotReading() {
       cleanupAudio();
     };
   }, []);
+
+  // Check API health on mount
+  useEffect(() => {
+    checkApiHealth();
+  }, []);
+
+  async function checkApiHealth() {
+    try {
+      // Check tarot-reading API health
+      const tarotHealth = await fetch('/api/tarot-reading/health').catch(() => null);
+      const ttsHealth = await fetch('/api/tts/health').catch(() => null);
+      
+      const anthropicAvailable = tarotHealth?.ok ?? false;
+      const azureAvailable = ttsHealth?.ok ?? false;
+      
+      if (!anthropicAvailable || !azureAvailable) {
+        setApiHealthBanner({
+          anthropic: anthropicAvailable,
+          azure: azureAvailable,
+          message: 'Using local services' +
+            (!anthropicAvailable ? ' (Claude unavailable)' : '') +
+            (!azureAvailable ? ' (Azure TTS unavailable)' : '')
+        });
+      }
+    } catch (err) {
+      // Silently fail - health check is non-critical
+      console.debug('API health check failed:', err);
+    }
+  }
 
   // Keep ambience in sync with toggle
   useEffect(() => {
@@ -318,6 +348,27 @@ export default function TarotReading() {
             </p>
           </div>
         </header>
+
+        {/* API Health Banner */}
+        {apiHealthBanner && (
+          <div className="mb-6 p-4 bg-amber-900/30 border border-amber-500/50 rounded-lg backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></div>
+              <div className="text-amber-200 text-sm">
+                <span className="font-semibold">Service Status:</span> {apiHealthBanner.message}
+              </div>
+            </div>
+            <div className="mt-2 text-amber-300/80 text-xs">
+              {!apiHealthBanner.anthropic && (
+                <div>• Claude AI: Using local composer</div>
+              )}
+              {!apiHealthBanner.azure && (
+                <div>• Azure TTS: Using local audio</div>
+              )}
+              <div className="mt-1">All readings remain fully functional with local fallbacks.</div>
+            </div>
+          </div>
+        )}
 
         {/* Spread + Controls layout */}
         <section className="mb-6 xl:mb-4">

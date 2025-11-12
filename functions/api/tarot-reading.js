@@ -24,6 +24,15 @@ import {
   buildPositionCardText
 } from '../lib/narrativeBuilder.js';
 
+export const onRequestGet = async ({ env }) => {
+  // Health check endpoint
+  return jsonResponse({
+    status: 'ok',
+    provider: env?.ANTHROPIC_API_KEY ? 'anthropic-claude-sonnet-4.5' : 'local',
+    timestamp: new Date().toISOString()
+  });
+};
+
 export const onRequestPost = async ({ request, env }) => {
   try {
     const payload = await readRequestBody(request);
@@ -42,6 +51,7 @@ export const onRequestPost = async ({ request, env }) => {
 
     // STEP 2: Generate reading (Claude or local)
     let reading;
+    let usedClaude = false;
 
     if (env && env.ANTHROPIC_API_KEY) {
       try {
@@ -52,6 +62,7 @@ export const onRequestPost = async ({ request, env }) => {
           reflectionsText,
           analysis
         });
+        usedClaude = true;
       } catch (err) {
         console.error('Anthropic Claude Sonnet 4.5 generation failed, falling back to local composer:', err);
       }
@@ -69,7 +80,7 @@ export const onRequestPost = async ({ request, env }) => {
 
     return jsonResponse({
       reading,
-      provider: reading && env && env.ANTHROPIC_API_KEY ? 'anthropic-claude-sonnet-4.5' : 'local'
+      provider: usedClaude ? 'anthropic-claude-sonnet-4.5' : 'local'
     });
   } catch (error) {
     console.error('tarot-reading function error:', error);

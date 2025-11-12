@@ -10,6 +10,16 @@
  * - Speed control for contemplative pacing
  * - Graceful fallback to local waveform
  */
+export const onRequestGet = async ({ env }) => {
+  // Health check endpoint
+  const hasAzure = !!(env?.AZURE_OPENAI_ENDPOINT && env?.AZURE_OPENAI_API_KEY);
+  return jsonResponse({
+    status: 'ok',
+    provider: hasAzure ? 'azure-openai' : 'local',
+    timestamp: new Date().toISOString()
+  });
+};
+
 export const onRequestPost = async ({ request, env }) => {
   try {
     const { text, context, voice } = await readJson(request);
