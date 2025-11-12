@@ -12,7 +12,10 @@
  */
 export const onRequestGet = async ({ env }) => {
   // Health check endpoint
-  const hasAzure = !!(env?.AZURE_OPENAI_ENDPOINT && env?.AZURE_OPENAI_API_KEY);
+  const azureEndpoint = resolveEnv(env, 'AZURE_OPENAI_ENDPOINT');
+  const azureKey = resolveEnv(env, 'AZURE_OPENAI_API_KEY');
+  const azureDeployment = resolveEnv(env, 'AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT');
+  const hasAzure = !!(azureEndpoint && azureKey && azureDeployment);
   return jsonResponse({
     status: 'ok',
     provider: hasAzure ? 'azure-openai' : 'local',
@@ -33,9 +36,17 @@ export const onRequestPost = async ({ request, env }) => {
     }
 
     // Primary: Azure OpenAI gpt-4o-mini-tts with steerable instructions
-    if (env?.AZURE_OPENAI_ENDPOINT && env?.AZURE_OPENAI_API_KEY && env?.AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT) {
+    const azureConfig = {
+      endpoint: resolveEnv(env, 'AZURE_OPENAI_ENDPOINT'),
+      apiKey: resolveEnv(env, 'AZURE_OPENAI_API_KEY'),
+      deployment: resolveEnv(env, 'AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT'),
+      apiVersion: resolveEnv(env, 'AZURE_OPENAI_API_VERSION'),
+      format: resolveEnv(env, 'AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT')
+    };
+
+    if (azureConfig.endpoint && azureConfig.apiKey && azureConfig.deployment) {
       try {
-        const audio = await generateWithAzureGptMiniTTS(env, {
+        const audio = await generateWithAzureGptMiniTTS(azureConfig, {
           text: sanitizedText,
           context: context || 'default',
           voice: voice || 'nova'
@@ -127,10 +138,10 @@ async function generateWithAzureGptMiniTTS(env, { text, context, voice }) {
   //
   // Returns audio as base64 data URI.
 
-  const endpoint = env.AZURE_OPENAI_ENDPOINT.replace(/\/+$/, '');
-  const deployment = env.AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT;
-  const apiVersion = env.AZURE_OPENAI_API_VERSION || '2025-04-01-preview';
-  const format = env.AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT || 'mp3';
+  const endpoint = env.endpoint.replace(/\/+$/, '');
+  const deployment = env.deployment;
+  const apiVersion = env.apiVersion || '2025-04-01-preview';
+  const format = env.format || 'mp3';
 
   // Select instruction template based on context
   const instructions = INSTRUCTION_TEMPLATES[context] || INSTRUCTION_TEMPLATES.default;
@@ -172,7 +183,7 @@ async function generateWithAzureGptMiniTTS(env, { text, context, voice }) {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'api-key': env.AZURE_OPENAI_API_KEY,
+      'api-key': env.apiKey,
       'content-type': 'application/json'
     },
     body: JSON.stringify(payload)
@@ -268,4 +279,16 @@ function jsonResponse(data, init = {}) {
       ...(init.headers || {})
     }
   });
+}
+
+function resolveEnv(env, key) {
+  if (env && typeof env[key] !== 'undefined' && env[key] !== null) {
+    return env[key];
+  }
+
+  if (typeof process !== 'undefined' && process.env && typeof process.env[key] !== 'undefined') {
+    return process.env[key];
+  }
+
+  return undefined;
 }
