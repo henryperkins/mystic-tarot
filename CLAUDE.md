@@ -11,6 +11,7 @@ It is designed to feel like sitting with a practiced reader using a real deck, n
 - Frontend: React + Vite, with ritual controls, spread selector, guided questions, and authentic card rendering.
 - Backend: Cloudflare Pages Function `functions/api/tarot-reading.js` handles narrative composition (Anthropic Claude Sonnet 4.5 when available, otherwise deterministic local logic).
 - Deck: Major Arcana modeled with upright/reversed meanings in `src/data/majorArcana.js`.
+  - Minors (beta): When enabled via the "Minors (beta)" toggle, deck construction uses [`getDeckPool(includeMinors)`](src/lib/deck.js:65) to include `MINOR_ARCANA` only if the dataset is complete (length 56). If not, it safely falls back to Majors-only.
 - Spreads: Real-world formats and position prompts in `src/data/spreads.js`.
 - Audio/TTS: Optional ambient sound and narration wired via `src/lib/audio.js` and `functions/api/tts.js`.
 

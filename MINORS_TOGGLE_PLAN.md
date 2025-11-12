@@ -1,6 +1,8 @@
 # Minors (Beta) Integration Plan
 
-This document captures the pragmatic plan and targeted code changes to introduce a **Minors (beta)** mode while:
+> STATUS: Partially implemented feature. The Minors (beta) toggle, deck-size-aware ritual controls, spread integration, and narrative payload support are implemented in code. Full 78-card behavior is gated by the `MINOR_ARCANA` dataset; when that dataset is incomplete, [`getDeckPool(includeMinors)`](src/lib/deck.js:65) automatically falls back to a Majors-only deck to prevent inconsistent draws. Treat this file as the design plus notes on the current implementation, not a guarantee that all 56 Minor Arcana meanings are populated.
+
+This document captures the pragmatic plan and targeted code changes to support a **Minors (beta)** mode while:
 
 - Keeping Majors-only as the default.
 - Ensuring all UX/copy remains accurate to the active deck.

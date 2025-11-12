@@ -178,6 +178,56 @@ export function computeRelationships(cards) {
     }
   }
 
+  // Suit dominance: highlight when one Minor suit clearly dominates
+  const suitCounts = cards.reduce((acc, c) => {
+    if (c && c.suit) {
+      acc[c.suit] = (acc[c.suit] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  const totalSuitCards = Object.values(suitCounts).reduce((a, b) => a + b, 0);
+  if (totalSuitCards >= 3) {
+    const sortedSuits = Object.entries(suitCounts).sort((a, b) => b[1] - a[1]);
+    const [topSuit, topCount] = sortedSuits[0];
+    const secondCount = sortedSuits[1]?.[1] || 0;
+    const hasClearLead =
+      topCount >= 3 && // at least 3 cards of the same suit
+      (topCount >= secondCount + 2 || topCount >= Math.ceil(totalSuitCards * 0.6));
+    if (hasClearLead) {
+      relationships.push({
+        type: 'suit-dominance',
+        text: `A strong presence of ${topSuit} cards suggests this suit's themes are central to your situation.`
+      });
+    }
+  }
+
+  // Court card gathering: Pages, Knights, Queens, Kings clustering
+  const courtRanks = new Set(['Page', 'Knight', 'Queen', 'King']);
+  const courtCards = cards.filter(c => c && courtRanks.has(c.rank));
+  if (courtCards.length >= 2) {
+    const suitsInCourts = new Set(courtCards.map(c => c.suit).filter(Boolean));
+    if (courtCards.length >= 3) {
+      relationships.push({
+        type: 'court-cluster',
+        text:
+          'Multiple court cards appear, highlighting key people, roles, or aspects of your own maturity and leadership in this story.'
+      });
+    } else if (courtCards.length === 2) {
+      relationships.push({
+        type: 'court-pair',
+        text:
+          'Two court cards in this spread point to important dynamics between personalities, approaches, or stages of growth.'
+      });
+    }
+    if (suitsInCourts.size === 1 && courtCards.length >= 2) {
+      const suit = courtCards[0].suit;
+      relationships.push({
+        type: 'court-suit-focus',
+        text: `Court cards clustered in ${suit} emphasize developed patterns or relationships within this suit's realm.`
+      });
+    }
+  }
+
   return relationships;
 }
 

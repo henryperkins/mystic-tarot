@@ -1,6 +1,68 @@
 import React from 'react';
 import { Star, Moon } from 'lucide-react';
 import { MAJOR_ARCANA } from '../data/majorArcana';
+import { MINOR_ARCANA } from '../data/minorArcana';
+
+function isMinor(card) {
+  return !!card.suit && !!card.rank;
+}
+
+function getMinorSuitGlyph(card) {
+  if (!isMinor(card)) return null;
+  switch (card.suit) {
+    case 'Wands':
+      return '⚚';
+    case 'Cups':
+      return '♥';
+    case 'Swords':
+      return '♠';
+    case 'Pentacles':
+      return '★';
+    default:
+      return '✶';
+  }
+}
+
+function getMinorAccentClass(card) {
+  if (!isMinor(card)) return '';
+  switch (card.suit) {
+    case 'Wands':
+      return 'minor-wands';
+    case 'Cups':
+      return 'minor-cups';
+    case 'Swords':
+      return 'minor-swords';
+    case 'Pentacles':
+      return 'minor-pentacles';
+    default:
+      return '';
+  }
+}
+
+function getMinorPipCount(card) {
+  if (!isMinor(card)) return 0;
+  // Use rankValue from MINOR_ARCANA when available; fallback to simple mapping.
+  const meta =
+    MINOR_ARCANA.find(c => c.name === card.name) ||
+    MINOR_ARCANA.find(c => c.suit === card.suit && c.rank === card.rank);
+  if (meta && typeof meta.rankValue === 'number') {
+    return Math.min(Math.max(meta.rankValue, 1), 10);
+  }
+  const rank = card.rank;
+  const map = {
+    Ace: 1,
+    Two: 2,
+    Three: 3,
+    Four: 4,
+    Five: 5,
+    Six: 6,
+    Seven: 7,
+    Eight: 8,
+    Nine: 9,
+    Ten: 10
+  };
+  return map[rank] || 0;
+}
 
 // Roman numeral helper to evoke authentic majors labeling
 function romanize(num) {
@@ -97,27 +159,56 @@ export function Card({
                   <div
                     className={`tarot-card-face ${
                       card.isReversed ? 'reversed' : 'upright'
-                    }`}
+                    } ${getMinorAccentClass(card)}`}
                   >
+                    {/* Header: Majors use roman numerals; Minors use rank + suit glyph */}
                     <div className="tarot-card-face-header">
-                      <span>
-                        {typeof card.number === 'number' ? romanize(card.number) : card.number}
-                      </span>
+                      {isMinor(card) ? (
+                        <span className="flex items-center justify-center gap-1">
+                          <span>{card.rank}</span>
+                          <span className="text-[11px] opacity-80">
+                            {getMinorSuitGlyph(card)}
+                          </span>
+                        </span>
+                      ) : (
+                        <span>
+                          {typeof card.number === 'number'
+                            ? romanize(card.number)
+                            : card.number}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Symbolic center: Majors keep existing sigil; Minors show suit-based pips */}
                     <div className="tarot-card-face-symbol">
-                      <div className="tarot-card-face-symbol-row">
-                        <div className="tarot-card-face-symbol-pill" />
-                        <div className="tarot-card-face-symbol-star" />
-                      </div>
-                      <div className="tarot-card-face-symbol-row">
-                        <div className="tarot-card-face-symbol-pill" />
-                        <div className="tarot-card-face-symbol-pill" />
-                      </div>
-                      <div className="tarot-card-face-symbol-row">
-                        <div className="tarot-card-face-symbol-star" />
-                        <div className="tarot-card-face-symbol-pill" />
-                      </div>
+                      {isMinor(card) ? (
+                        <div className="grid grid-cols-5 grid-rows-2 gap-[2px] items-center justify-items-center w-full h-full px-2">
+                          {Array.from({ length: getMinorPipCount(card) }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="w-1.5 h-1.5 rounded-full bg-amber-300/80 minor-pip"
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="tarot-card-face-symbol-row">
+                            <div className="tarot-card-face-symbol-pill" />
+                            <div className="tarot-card-face-symbol-star" />
+                          </div>
+                          <div className="tarot-card-face-symbol-row">
+                            <div className="tarot-card-face-symbol-pill" />
+                            <div className="tarot-card-face-symbol-pill" />
+                          </div>
+                          <div className="tarot-card-face-symbol-row">
+                            <div className="tarot-card-face-symbol-star" />
+                            <div className="tarot-card-face-symbol-pill" />
+                          </div>
+                        </>
+                      )}
                     </div>
+
+                    {/* Name: for Minors this already encodes rank + suit */}
                     <div className="tarot-card-face-name">
                       {card.name}
                     </div>
@@ -140,7 +231,9 @@ export function Card({
               <div className="bg-indigo-950/60 rounded p-4 border border-amber-500/10">
                 <p className="text-amber-100/90 text-sm leading-relaxed">
                   {(() => {
-                    const originalCard = MAJOR_ARCANA.find(item => item.name === card.name) || card;
+                    const allCards = [...MAJOR_ARCANA, ...MINOR_ARCANA];
+                    const originalCard =
+                      allCards.find(item => item.name === card.name) || card;
                     return card.isReversed ? originalCard.reversed : originalCard.upright;
                   })()}
                 </p>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Sparkles, RotateCcw, Star } from 'lucide-react';
 import { MAJOR_ARCANA } from './data/majorArcana';
+import { MINOR_ARCANA } from './data/minorArcana';
 import { SPREADS } from './data/spreads';
 import { EXAMPLE_QUESTIONS } from './data/exampleQuestions';
 import { SpreadSelector } from './components/SpreadSelector';
@@ -210,6 +211,8 @@ export default function TarotReading() {
     setIsGenerating(false);
     setDealIndex(0);
     setReflections({});
+    setHasKnocked(false);
+    setHasCut(false);
 
     if (typeof performance !== 'undefined') {
       const now = performance.now();
@@ -266,16 +269,30 @@ export default function TarotReading() {
     try {
       const spreadInfo = SPREADS[selectedSpread];
 
+      const allCards = [...MAJOR_ARCANA, ...MINOR_ARCANA];
+
       const cardsInfo = reading.map((card, idx) => {
-        const originalCard = MAJOR_ARCANA.find(item => item.name === card.name) || card;
+        const originalCard = allCards.find(item => item.name === card.name) || card;
         const meaningText = card.isReversed ? originalCard.reversed : originalCard.upright;
         const position = spreadInfo.positions[idx] || `Position ${idx + 1}`;
+
+        // Preserve backward compatibility for Majors while enriching Minors.
+        const suit = originalCard.suit || null;
+        const rank = originalCard.rank || null;
+        const rankValue =
+          typeof originalCard.rankValue === 'number' ? originalCard.rankValue : null;
+
         return {
           position,
           card: card.name,
           orientation: card.isReversed ? 'Reversed' : 'Upright',
           meaning: meaningText,
-          number: card.number
+          number: card.number,
+          // New Minor Arcana metadata for backend analysis:
+          // Provided as null for Majors so spreadAnalysis/narrativeBuilder can branch cleanly.
+          suit,
+          rank,
+          rankValue
         };
       });
 

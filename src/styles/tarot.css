@@ -283,3 +283,31 @@ textarea:focus-visible {
   box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.32);
   filter: saturate(0.84) hue-rotate(-10deg);
 }
+
+/* Minor Arcana suit accents
+   These subtly tint the existing card-face without breaking the shared aesthetic. */
+
+.tarot-card-face.minor-wands {
+  border-color: rgba(248, 250, 109, 0.9);
+  box-shadow: inset 0 0 8px rgba(248, 250, 109, 0.2);
+}
+
+.tarot-card-face.minor-cups {
+  border-color: rgba(56, 189, 248, 0.9);
+  box-shadow: inset 0 0 8px rgba(56, 189, 248, 0.2);
+}
+
+.tarot-card-face.minor-swords {
+  border-color: rgba(148, 163, 253, 0.95);
+  box-shadow: inset 0 0 8px rgba(148, 163, 253, 0.26);
+}
+
+.tarot-card-face.minor-pentacles {
+  border-color: rgba(52, 211, 153, 0.9);
+  box-shadow: inset 0 0 8px rgba(52, 211, 153, 0.22);
+}
+
+/* Minor pip dots used for numbered Minors */
+.minor-pip {
+  box-shadow: 0 0 3px rgba(251, 191, 36, 0.85);
+}
