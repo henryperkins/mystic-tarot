@@ -19,7 +19,7 @@ export function SpreadSelector({
   deckSize = 22
 }) {
   return (
-    <div className="bg-indigo-900/40 backdrop-blur rounded-lg p-6 mb-8 border border-amber-500/20">
+    <div className="modern-surface p-6 mb-8">
       <h2 className="text-xl font-serif text-amber-200 mb-1 flex items-center gap-2">
         <Sparkles className="w-5 h-5" />
         Choose Your Spread
@@ -47,8 +47,8 @@ export function SpreadSelector({
             }}
             className={`p-4 rounded-lg border-2 transition-all ${
               selectedSpread === key
-                ? 'bg-amber-500/20 border-amber-500 text-amber-200'
-                : 'bg-indigo-800/40 border-indigo-700/50 text-amber-100/70 hover:border-amber-500/50'
+                ? 'bg-emerald-500/15 border-emerald-400 text-emerald-200 shadow-lg shadow-emerald-900/40'
+                : 'bg-slate-900/70 border-slate-700/60 text-amber-100/80 hover:border-emerald-400/40 hover:bg-slate-900/90'
             }`}
           >
             <div className="font-serif font-semibold">{spread.name}</div>

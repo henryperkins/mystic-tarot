@@ -11,7 +11,7 @@ export function RitualControls({
   deckSize = 22
 }) {
   return (
-    <div className="bg-indigo-900/40 backdrop-blur rounded-lg p-6 mb-6 border border-amber-500/20">
+    <div className="modern-surface p-6 mb-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         {/* Knock / Clear */}
         <div className="flex-1">
@@ -20,8 +20,8 @@ export function RitualControls({
             onClick={handleKnock}
             className={`px-4 py-2 rounded-lg border ${
               hasKnocked
-                ? 'border-emerald-500/60 bg-emerald-500/15'
-                : 'border-amber-500/40 bg-indigo-950/60 hover:bg-indigo-900/60'
+                ? 'border-emerald-500/60 bg-emerald-500/12'
+                : 'border-emerald-400/30 bg-slate-900/80 hover:bg-slate-800/90'
             }`}
             aria-pressed={hasKnocked}
             title="Knock up to 3 times"
@@ -50,8 +50,8 @@ export function RitualControls({
               onClick={applyCut}
               className={`w-full sm:w-auto px-3 py-2 rounded-lg border ${
                 hasCut
-                  ? 'border-emerald-500/60 bg-emerald-500/15'
-                  : 'border-amber-500/40 bg-indigo-950/60 hover:bg-indigo-900/60'
+                  ? 'border-emerald-500/60 bg-emerald-500/12'
+                  : 'border-emerald-400/30 bg-slate-900/80 hover:bg-slate-800/90'
               }`}
               aria-pressed={hasCut}
             >

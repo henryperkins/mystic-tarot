@@ -3,19 +3,22 @@ import { SPREADS } from '../data/spreads';
 import { Card } from './Card';
 
 function toAreaClass(position) {
+  // Normalize full Celtic Cross labels (e.g. "Present — core situation (Card 1)")
+  const key = position.split('—')[0].trim(); // take text before the em dash
   const map = {
-    Present: 'present',
-    Challenge: 'challenge',
-    Past: 'past',
-    Future: 'future',
-    Above: 'above',
-    Below: 'below',
-    Advice: 'advice',
-    External: 'external',
-    'Hopes/Fears': 'hopesfears',
-    Outcome: 'outcome'
+    'Present': 'present',
+    'Challenge': 'challenge',
+    'Past': 'past',
+    'Near Future': 'future',
+    'Future': 'future',
+    'Conscious': 'above',
+    'Subconscious': 'below',
+    'Self / Advice': 'advice',
+    'External Influences': 'external',
+    'Hopes & Fears': 'hopesfears',
+    'Outcome': 'outcome'
   };
-  return `cc-${map[position] || 'present'}`;
+  return `cc-${map[key] || 'present'}`;
 }
 
 export function ReadingGrid({
@@ -50,7 +53,7 @@ export function ReadingGrid({
         return (
           <div
             key={`${card.name}-${index}`}
-            className={`bg-indigo-900/40 backdrop-blur rounded-lg border border-amber-500/30 overflow-hidden ${
+            className={`modern-surface border border-emerald-400/18 overflow-hidden ${
               selectedSpread === 'celtic' ? toAreaClass(position) : ''
             }`}
           >

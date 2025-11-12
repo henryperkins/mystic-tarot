@@ -2,5 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Modern Mystic theme overrides */
+body {
+  @apply bg-slate-950 text-amber-50 antialiased;
+}
+
+/* Shared surface styling for cards / panels */
+.modern-surface {
+  @apply bg-slate-900/80 backdrop-blur-xl border border-emerald-400/15 rounded-2xl shadow-xl shadow-emerald-900/30;
+}
+
+/* AI / analysis panel */
+.ai-panel-modern {
+  @apply modern-surface px-6 py-5 text-left mx-auto;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.12), transparent),
+    radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.10), transparent),
+    rgba(2, 6, 23, 0.98);
+}
+
+.ai-panel-text {
+  @apply text-sm text-emerald-100 whitespace-pre-line italic;
+}
+
+.ai-panel-hint {
+  @apply text-[11px] text-emerald-300/80 mt-3;
+}
+
 /* Pull Mystic Tarot custom styles into the generated bundle */
 @import './tarot.css';

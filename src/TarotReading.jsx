@@ -10,7 +10,18 @@ import { SettingsToggles } from './components/SettingsToggles';
 import { RitualControls } from './components/RitualControls';
 import { ReadingGrid } from './components/ReadingGrid';
 import { getDeckPool, computeSeed, computeRelationships, drawSpread } from './lib/deck';
-import { initAudio, toggleAmbience, playFlip, speakText, cleanupAudio } from './lib/audio';
+import {
+  initAudio,
+  toggleAmbience,
+  playFlip,
+  speakText,
+  cleanupAudio,
+  pauseTTS,
+  resumeTTS,
+  stopTTS as stopNarration,
+  subscribeToTTS,
+  getCurrentTTSState
+} from './lib/audio';
 import { formatReading, splitIntoParagraphs } from './lib/formatting';
 import './styles/tarot.css';
 
@@ -33,6 +44,8 @@ export default function TarotReading() {
   const [reflections, setReflections] = useState({});
   const [ambienceOn, setAmbienceOn] = useState(false);
   const [apiHealthBanner, setApiHealthBanner] = useState(null);
+  const [ttsState, setTtsState] = useState(() => getCurrentTTSState());
+  const [ttsAnnouncement, setTtsAnnouncement] = useState('');
 
   const knockTimesRef = useRef([]);
   const shuffleTimeoutRef = useRef(null);
@@ -58,6 +71,31 @@ export default function TarotReading() {
   // Check API health on mount
   useEffect(() => {
     checkApiHealth();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTTS(state => {
+      setTtsState(state);
+      const isFullReading = state.context === 'full-reading';
+      const announcement = isFullReading
+        ? state.message ||
+          (state.status === 'completed'
+            ? 'Narration finished.'
+            : state.status === 'paused'
+              ? 'Narration paused.'
+              : state.status === 'playing'
+                ? 'Narration playing.'
+                : state.status === 'loading'
+                  ? 'Preparing narration.'
+                  : state.status === 'stopped'
+                    ? 'Narration stopped.'
+                    : state.status === 'error'
+                      ? 'Narration unavailable.'
+                      : '')
+        : '';
+      setTtsAnnouncement(announcement);
+    });
+    return unsubscribe;
   }, []);
 
   async function checkApiHealth() {
@@ -195,6 +233,79 @@ export default function TarotReading() {
       console.error('Failed to save tarot reading', error);
     }
   }
+
+  const fullReadingText = personalReading?.raw || personalReading?.normalized || '';
+  const isNarrationAvailable = Boolean(fullReadingText);
+  const isPersonalReadingContext = ttsState.context === 'full-reading';
+  const personalStatus = isPersonalReadingContext ? ttsState.status : 'idle';
+  const personalProvider = isPersonalReadingContext ? ttsState.provider : null;
+  const personalMessage = isPersonalReadingContext ? ttsState.message : null;
+  const isTtsLoading = personalStatus === 'loading';
+  const isTtsPlaying = personalStatus === 'playing';
+  const isTtsPaused = personalStatus === 'paused';
+  const isTtsError = personalStatus === 'error';
+  const isTtsFallback = personalProvider === 'fallback';
+  const playButtonLabel = isTtsLoading
+    ? 'Preparing narration...'
+    : isTtsPlaying
+      ? 'Pause narration'
+      : isTtsPaused
+        ? 'Resume narration'
+        : 'Read this aloud';
+  const playButtonAriaLabel = isTtsLoading
+    ? 'Preparing personal reading narration'
+    : isTtsPlaying
+      ? 'Pause personal reading narration'
+      : isTtsPaused
+        ? 'Resume personal reading narration'
+        : 'Read your personal tarot reading aloud';
+  const playButtonDisabled =
+    !voiceOn ||
+    !isNarrationAvailable ||
+    (isTtsLoading && !isTtsPaused && !isTtsPlaying);
+  const showStopButton =
+    isPersonalReadingContext && voiceOn && isNarrationAvailable && (isTtsPlaying || isTtsPaused || isTtsLoading);
+
+  const inlineStatusMessage = !voiceOn
+    ? "Turn on 'Reader voice' in Experience settings above to listen to this reading."
+    : !isNarrationAvailable
+      ? null
+      : isTtsError
+        ? personalMessage || 'Unable to play audio right now.'
+        : isTtsFallback
+          ? 'Voice service is unavailable right now, so you will hear a gentle chime instead of narration.'
+          : isTtsLoading
+            ? 'Preparing audio...'
+            : isTtsPaused
+              ? 'Narration paused.'
+              : personalStatus === 'completed'
+                ? 'Narration finished.'
+                : personalStatus === 'stopped'
+                  ? 'Narration stopped.'
+                  : null;
+
+  const helperId = inlineStatusMessage ? 'personal-reading-tts-helper' : undefined;
+
+  const handleNarrationButtonClick = () => {
+    if (!voiceOn || !isNarrationAvailable) return;
+    if (isTtsLoading && !isTtsPaused && !isTtsPlaying) return;
+
+    if (isTtsPlaying) {
+      pauseTTS();
+      return;
+    }
+
+    if (isTtsPaused) {
+      void resumeTTS();
+      return;
+    }
+
+    void speak(fullReadingText, 'full-reading');
+  };
+
+  const handleNarrationStop = () => {
+    stopNarration();
+  };
 
   const shuffle = () => {
     const currentSpread = selectedSpread;
@@ -367,7 +478,7 @@ export default function TarotReading() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-indigo-950 text-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-amber-50">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 lg:py-10">
         {/* Header */}
         <header aria-labelledby="mystic-tarot-heading">
@@ -543,7 +654,7 @@ export default function TarotReading() {
 
             {/* Dynamic Insights */}
             {revealedCards.size === reading.length && (
-              <div className="bg-indigo-900/40 backdrop-blur rounded-lg p-6 border border-amber-500/30 space-y-4">
+              <div className="modern-surface p-6 border border-emerald-400/22 space-y-4">
                 <h3 className="text-lg font-serif text-amber-200 mb-3 flex items-center gap-2">
                   <Star className="w-5 h-5" />
                   Spread Highlights
@@ -574,9 +685,9 @@ export default function TarotReading() {
 
                    return (
                      <div className="flex items-start gap-3">
-                       <div className="text-purple-400 mt-1">-</div>
+                       <div className="text-cyan-400 mt-1">-</div>
                        <div>
-                         <span className="font-semibold text-purple-300">
+                         <span className="font-semibold text-cyan-300">
                            Reversed cards ({reversedIdx.length}):
                          </span>{' '}
                          {positions}.
@@ -612,87 +723,123 @@ export default function TarotReading() {
 
             {/* Generate Personal Reading Button */}
             {!personalReading && revealedCards.size === reading.length && (
-              <div className="text-center">
-                <button
-                  onClick={generatePersonalReading}
-                  disabled={isGenerating}
-                  className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 rounded-lg shadow-lg transition-all flex items-center gap-3 mx-auto text-base sm:text-lg leading-snug"
-                >
-                  <Sparkles className={`w-5 h-5 ${isGenerating ? 'motion-safe:animate-pulse' : ''}`} />
-                  {isGenerating ? (
-                    <>
-                      <span className="hidden sm:inline">
-                        Weaving your personalized reflection from this spread...
-                      </span>
-                      <span className="sm:hidden">
-                        Generating reading...
-                      </span>
-                    </>
-                  ) : (
-                    'Get Personalized Reading'
-                  )}
-                </button>
-                <p className="text-purple-300/75 text-sm mt-3">
-                  Reveal all cards to unlock your personalized narrative. Use it as reflection, not fixed prediction.
-                </p>
-              </div>
-            )}
+               <div className="text-center">
+                 <button
+                   onClick={generatePersonalReading}
+                   disabled={isGenerating}
+                   className="bg-gradient-to-r from-emerald-500 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold px-8 py-4 rounded-xl shadow-xl shadow-emerald-900/40 transition-all flex items-center gap-3 mx-auto text-base sm:text-lg leading-snug"
+                 >
+                   <Sparkles className={`w-5 h-5 ${isGenerating ? 'motion-safe:animate-pulse' : ''}`} />
+                   {isGenerating ? (
+                     <>
+                       <span className="hidden sm:inline">
+                         Weaving your personalized reflection from this spread...
+                       </span>
+                       <span className="sm:hidden">
+                         Generating reading...
+                       </span>
+                     </>
+                   ) : (
+                     'Generate personalized narrative'
+                   )}
+                 </button>
+                 <p className="text-emerald-300/80 text-sm mt-3 max-w-xl mx-auto">
+                   Reveal all cards to unlock a tailored reflection that weaves positions, meanings, and your notes into one coherent story.
+                 </p>
+               </div>
+             )}
 
             {/* Analyzing Preview */}
             {isGenerating && analyzingText && (
-              <div className="max-w-3xl mx-auto text-center">
-                <div className="bg-purple-900/40 backdrop-blur rounded-lg p-6 border border-purple-500/30">
-                  <div className="text-purple-200/90 text-sm whitespace-pre-line italic" aria-live="polite">
-                    {analyzingText}
-                  </div>
-                  <p className="text-purple-200/70 text-[11px] mt-2">
-                    This reflection is generated from your spread and question to support insight, not to decide for you.
-                  </p>
-                </div>
-              </div>
-            )}
+               <div className="max-w-3xl mx-auto text-center">
+                 <div className="ai-panel-modern">
+                   <div className="ai-panel-text" aria-live="polite">
+                     {analyzingText}
+                   </div>
+                   <p className="ai-panel-hint">
+                     This reflection is generated from your spread and question to support insight, not to decide for you.
+                   </p>
+                 </div>
+               </div>
+             )}
 
             {/* Personal Reading Display */}
             {personalReading && (
-              <div className="bg-gradient-to-r from-purple-900/60 to-indigo-900/60 backdrop-blur rounded-lg p-8 border border-amber-500/40 max-w-3xl mx-auto">
+               <div className="bg-gradient-to-r from-slate-900/80 via-slate-950/95 to-slate-900/80 backdrop-blur-xl rounded-2xl p-8 border border-emerald-400/25 shadow-2xl shadow-emerald-900/40 max-w-3xl mx-auto">
                 <h3 className="text-2xl font-serif text-amber-200 mb-2 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6" />
-                  Your Personal Reading
+                  <Sparkles className="w-6 h-6 text-emerald-300" />
+                  Your Personalized Narrative
                 </h3>
-                <p className="text-amber-200/70 text-xs mb-4">
-                  A narrative mirror for reflection, not a fixed prediction. Let it support your own judgment and agency.
+                <p className="text-amber-200/75 text-xs sm:text-sm mb-4 max-w-2xl mx-auto">
+                  This narrative braids together your spread positions, card meanings, and reflections into a single through-line.
+                  Read slowly, notice what resonates, and treat it as a mirror—not a script.
                 </p>
                 {userQuestion && (
-                  <div className="bg-indigo-950/60 rounded-lg p-4 mb-4 border border-amber-500/20">
-                    <p className="text-amber-300/80 text-sm italic">Question: {userQuestion}</p>
-                  </div>
-                )}
-                {/* Render normalized text as natural paragraphs */}
-                <div className="text-amber-100 leading-relaxed space-y-4 max-w-prose mx-auto">
+             <div className="bg-slate-950/85 rounded-lg p-4 mb-4 border border-emerald-400/22">
+               <p className="text-amber-300/85 text-xs sm:text-sm italic">
+                 Anchor: {userQuestion}
+               </p>
+             </div>
+           )}
+                {/* Render normalized text as natural paragraphs with improved readability */}
+                <div className="text-amber-100 leading-relaxed space-y-3 sm:space-y-4 max-w-prose mx-auto text-left">
                   {personalReading.paragraphs && personalReading.paragraphs.length > 0 ? (
                     personalReading.paragraphs.map((para, idx) => (
-                      <p key={idx} className="text-base md:text-lg leading-loose">
+                      <p
+                        key={idx}
+                        className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose"
+                      >
                         {para}
                       </p>
                     ))
                   ) : (
-                    <p className="text-base md:text-lg leading-loose whitespace-pre-line">
+                    <p className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose whitespace-pre-line">
                       {personalReading.normalized || personalReading.raw || ''}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center justify-center gap-3 mt-3">
-                  <button
-                    onClick={() => {
-                      // Use raw markdown - audio.js will normalize and prepare for TTS
-                      void speak(personalReading.raw || personalReading.normalized || '', 'full-reading');
-                    }}
-                    className="px-4 py-2 rounded-lg border border-amber-500/40 bg-indigo-950/60 hover:bg-indigo-900/60 disabled:opacity-40"
-                    disabled={!voiceOn}
-                    title={voiceOn ? 'Read aloud' : 'Enable Reader voice above'}
-                  >
-                    Read this aloud
-                  </button>
+                <div className="flex flex-col items-center justify-center gap-3 mt-4">
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleNarrationButtonClick}
+                      className="px-4 py-2 rounded-lg border border-emerald-400/40 bg-slate-950/85 hover:bg-slate-900/80 disabled:opacity-40 disabled:cursor-not-allowed transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                      disabled={playButtonDisabled}
+                      aria-label={playButtonAriaLabel}
+                      aria-describedby={helperId}
+                    >
+                      {playButtonLabel}
+                    </button>
+                    {showStopButton && (
+                      <button
+                        type="button"
+                        onClick={handleNarrationStop}
+                        className="px-3 py-2 rounded-lg border border-emerald-400/40 bg-slate-950/70 hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled={!isTtsPlaying && !isTtsPaused && !isTtsLoading}
+                        aria-label="Stop personal reading narration"
+                      >
+                        Stop narration
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={saveReading}
+                      className="px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-200 text-xs sm:text-sm hover:bg-emerald-500/25 hover:text-emerald-100 transition"
+                    >
+                      Save this narrative to your journal
+                    </button>
+                  </div>
+                  {inlineStatusMessage && (
+                    <p
+                      id="personal-reading-tts-helper"
+                      className="text-amber-200/75 text-xs text-center max-w-sm"
+                    >
+                      {inlineStatusMessage}
+                    </p>
+                  )}
+                  <div className="sr-only" role="status" aria-live="polite">
+                    {ttsAnnouncement}
+                  </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-amber-500/20 flex flex-col gap-3 items-center">
                   <p className="text-amber-200/70 text-xs italic text-center">
@@ -718,7 +865,7 @@ export default function TarotReading() {
 
             {/* General Guidance */}
             {!personalReading && !isGenerating && (
-              <div className="bg-gradient-to-r from-indigo-900/60 to-purple-900/60 backdrop-blur rounded-lg p-6 border border-amber-500/30 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-slate-900/80 to-slate-950/90 backdrop-blur-xl rounded-2xl p-6 border border-emerald-400/20 max-w-2xl mx-auto">
                 <h3 className="text-xl font-serif text-amber-200 mb-3 flex items-center gap-2">
                   <Star className="w-5 h-5" />
                   Interpretation Guidance

@@ -105,10 +105,10 @@ export function Card({
   return (
     <div
       key={`${card.name}-${index}`}
-      className="bg-indigo-900/40 backdrop-blur rounded-lg border border-amber-500/30 overflow-hidden"
+      className="modern-surface border border-emerald-400/22 overflow-hidden"
     >
       {/* Position Label */}
-      <div className="bg-indigo-950/60 p-3 border-b border-amber-500/20">
+      <div className="bg-slate-950/80 p-3 border-b border-emerald-400/18">
         <h3 className="text-amber-300 font-serif text-center font-semibold">{position}</h3>
       </div>
 
@@ -131,7 +131,7 @@ export function Card({
           tabIndex={0}
           className={`cursor-pointer transition-all duration-500 transform ${
             !isRevealed
-              ? 'hover:bg-indigo-800/30 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500/50 rounded-lg'
+              ? 'hover:bg-slate-900/70 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 rounded-lg'
               : ''
           }`}
           style={{
@@ -220,15 +220,15 @@ export function Card({
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide ${
                     card.isReversed
-                      ? 'bg-purple-500/15 text-purple-300 border border-purple-500/40'
-                      : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      ? 'bg-slate-900/90 text-cyan-300 border border-cyan-400/50'
+                      : 'bg-emerald-500/10 text-emerald-300 border border-emerald-400/60'
                   }`}
                 >
                   {card.isReversed ? 'Reversed current' : 'Upright current'}
                 </span>
               </div>
 
-              <div className="bg-indigo-950/60 rounded p-4 border border-amber-500/10">
+              <div className="bg-slate-950/85 rounded p-4 border border-emerald-400/16">
                 <p className="text-amber-100/90 text-sm leading-relaxed">
                   {(() => {
                     const allCards = [...MAJOR_ARCANA, ...MINOR_ARCANA];
@@ -246,7 +246,7 @@ export function Card({
                     setReflections(prev => ({ ...prev, [index]: event.target.value }))
                   }
                   rows={2}
-                  className="w-full bg-indigo-950/60 border border-amber-500/20 rounded p-2 text-amber-100/90 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                  className="w-full bg-slate-950/85 border border-emerald-400/22 rounded p-2 text-amber-100/90 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400/55"
                   placeholder="Write a sentence or two..."
                 />
               </div>
