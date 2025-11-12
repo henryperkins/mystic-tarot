@@ -19,7 +19,7 @@ export const PIP_NUMEROLOGY = {
   3: 'growth, first stability, collaboration, and visible development',
   4: 'foundation, consolidation, stability that can comfort or confine',
   5: 'conflict, disruption, tests that stress the pattern and demand adjustment',
-  6: 'harmony restored, exchange, integration after challenge',
+  6: 'recognition, victory, and public acknowledgment',
   7: 'assessment, testing, deeper questions about direction and alignment',
   8: 'dedication, focused work, sustained effort in this suit’s domain',
   9: 'fruition, culmination near completion, self-sufficiency in this area',
