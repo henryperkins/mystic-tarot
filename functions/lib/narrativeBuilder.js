@@ -6,6 +6,7 @@
  */
 
 import { getImageryHook, isMajorArcana, getElementalImagery } from './imageryHooks.js';
+import { buildMinorSummary } from './minorMeta.js';
 
 /**
  * Position-specific language templates
@@ -54,7 +55,7 @@ const POSITION_LANGUAGE = {
   'Conscious — goals & focus (Card 5)': {
     intro: (card, orientation) =>
       `Your conscious goal, what you aspire toward: ${card} ${orientation}.`,
-    frame: 'This card reflects what you are actively focusing on, your known intentions, and the outcome you hope to achieve.',
+    frame: 'This card reflects what you are actively focusing on, your known intentions, and the outcome you hope to achieve. For Majors, this often points to soul-level aspirations; for Minors, read how practical efforts and day-to-day choices echo those higher aims.',
     useImagery: true
   },
 
@@ -273,6 +274,21 @@ export function buildPositionCardText(cardInfo, position, options = {}) {
     }
   }
 
+  // Minor Arcana: suit/rank-aware enrichment (no extra imagery hooks).
+  let minorContextText = '';
+  if (!isMajorArcana(cardInfo.number)) {
+    const minorSummary = buildMinorSummary({
+      card: cardInfo.card,
+      name: cardInfo.card,
+      suit: cardInfo.suit,
+      rank: cardInfo.rank,
+      rankValue: cardInfo.rankValue
+    });
+    if (minorSummary) {
+      minorContextText = ` ${minorSummary}`;
+    }
+  }
+
   // Add elemental sensory imagery if elemental relationship exists
   let elementalImagery = '';
   if (prevElementalRelationship && prevElementalRelationship.elements) {
@@ -283,7 +299,7 @@ export function buildPositionCardText(cardInfo, position, options = {}) {
     }
   }
 
-  return `${intro} ${meaning}${imagery} ${template.frame}${elementalImagery}${appendReversalGuidance}`;
+  return `${intro} ${meaning}${imagery}${minorContextText} ${template.frame}${elementalImagery}${appendReversalGuidance}`;
 }
 
 function buildReversalGuidance(reversalDescription) {
@@ -733,6 +749,23 @@ function buildSystemPrompt(spreadKey, themes) {
 ${themes.reversalDescription.description}
 ${themes.reversalDescription.guidance}
 **Use this lens consistently for ALL reversed cards in this reading.**\n\n`;
+
+  // Minor Arcana rules
+  prompt += `MINOR ARCANA INTERPRETATION RULES:
+- Treat Minor Arcana as first-class: always use their actual suit and rank.
+- Suits:
+  - Wands (Fire): action, will, creativity, desire.
+  - Cups (Water): emotions, relationships, intuition, care.
+  - Swords (Air): mind, truth, communication, conflict, clarity.
+  - Pentacles (Earth): body, work, resources, and material stability.
+- Ranks (Aces–Tens): read as a progression from seed/beginning (Aces), through tests and growth, to culmination/legacy (Tens).
+- Court Cards:
+  - Pages: students or messengers of the suit—early expressions, curiosity, signals (often parts of self).
+  - Knights: movement and pursuit—how this energy is actively carried or defended.
+  - Queens: inner, receptive mastery—embodied wisdom and stewardship.
+  - Kings: outer, directive mastery—structure, leadership, accountability.
+- Always ground interpretations in the specific cards and positions provided.
+- Do NOT invent new cards, suits, or attributes beyond the input.\n\n`;
 
   // Position interpretation rules
   prompt += `POSITION INTERPRETATION RULES:

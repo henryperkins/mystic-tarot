@@ -8,7 +8,8 @@ import {
 import {
   buildCelticCrossReading,
   buildEnhancedClaudePrompt,
-  buildThreeCardReading
+  buildThreeCardReading,
+  buildPositionCardText
 } from '../functions/lib/narrativeBuilder.js';
 
 function buildReversedCelticCards() {
@@ -161,6 +162,28 @@ const CELTIC_HEADINGS = [
   assert.ok(
     reading.includes('Within the Blocked Energy lens'),
     'Three-card readings should propagate reversal guidance'
+  );
+
+  // Spot-check Minor metadata enrichment via buildPositionCardText for a representative Minor
+  const sample = {
+    position: 'Present — where you stand now',
+    card: 'Two of Cups',
+    orientation: 'Upright',
+    meaning: 'Connection, partnership, mutual respect, heartfelt unity',
+    suit: 'Cups',
+    rank: 'Two',
+    rankValue: 2
+  };
+
+  const text = buildPositionCardText(sample, sample.position, { reversalDescription: themes.reversalDescription });
+
+  assert.ok(
+    text.includes('As a Cups card, this speaks to'),
+    'Minor summary should include suit-level theme'
+  );
+  assert.ok(
+    /At this rank, it marks/.test(text),
+    'Minor summary should include pip-level numerology for non-court ranks'
   );
 }
 

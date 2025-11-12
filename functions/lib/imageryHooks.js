@@ -7,6 +7,14 @@
  * - upright: Imagery interpretation for upright orientation
  * - reversed: Imagery interpretation for reversed orientation
  * - sensory: Sensory language to evoke the card's essence
+ *
+ * Minor Arcana currently receive suit/rank-aware narrative enrichment via
+ * buildMinorSummary() in [`functions/lib/minorMeta.js`](functions/lib/minorMeta.js:1).
+ * Dedicated per-card imagery hooks for Minors can be layered in later as:
+ *
+ * - a light-weight, optional `getMinorImageryHook({ suit, rank, orientation })`
+ * - used ONLY when content is available and feature flag is enabled
+ * - keeping Minors fully functional without requiring 56 extra entries
  */
 
 export const MAJOR_ARCANA_IMAGERY = {
