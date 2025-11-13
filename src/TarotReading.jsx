@@ -38,6 +38,7 @@ export default function TarotReading() {
   const [analyzingText, setAnalyzingText] = useState('');
   const [hasKnocked, setHasKnocked] = useState(false);
   const [hasCut, setHasCut] = useState(false);
+  const [hasConfirmedSpread, setHasConfirmedSpread] = useState(false);
   const [cutIndex, setCutIndex] = useState(Math.floor(MAJOR_ARCANA.length / 2));
   const [dealIndex, setDealIndex] = useState(0);
   const [voiceOn, setVoiceOn] = useState(() => {
@@ -443,6 +444,9 @@ export default function TarotReading() {
     }
 
     setIsShuffling(true);
+    if (!hasConfirmedSpread) {
+      setHasConfirmedSpread(true);
+    }
     setReading(null);
     setRevealedCards(new Set());
     setPersonalReading(null);
@@ -737,6 +741,77 @@ export default function TarotReading() {
     setDealIndex(reading.length);
   };
 
+  const hasQuestion = Boolean(userQuestion && userQuestion.trim().length > 0);
+  const hasRitualProgress = hasKnocked || hasCut;
+  const hasReading = Boolean(reading && reading.length > 0);
+  const allCardsRevealed = hasReading && revealedCards.size === reading.length;
+  const hasNarrative = Boolean(personalReading);
+  const narrativeInProgress = isGenerating && !personalReading;
+
+  const { stepIndicatorLabel, stepIndicatorHint } = useMemo(() => {
+    if (hasNarrative) {
+      return {
+        stepIndicatorLabel: 'Step 5 · Reflect on your narrative',
+        stepIndicatorHint: 'Read through the personalized guidance and save anything that resonates.',
+      };
+    }
+
+    if (narrativeInProgress) {
+      return {
+        stepIndicatorLabel: 'Step 5 · Weaving your narrative',
+        stepIndicatorHint: 'Hang tight while we compose your personalized reading.',
+      };
+    }
+
+    if (hasReading) {
+      if (allCardsRevealed) {
+        return {
+          stepIndicatorLabel: 'Step 4 · Explore your spread',
+          stepIndicatorHint: 'Review the card insights below or generate a personalized narrative.',
+        };
+      }
+
+      return {
+        stepIndicatorLabel: 'Step 4 · Reveal your cards',
+        stepIndicatorHint: 'Flip each card to unfold the story of your spread.',
+      };
+    }
+
+    if (!hasConfirmedSpread) {
+      return {
+        stepIndicatorLabel: 'Step 1 · Choose your spread',
+        stepIndicatorHint: 'Tap a spread that matches your focus to begin shaping the reading.',
+      };
+    }
+
+    if (!hasQuestion && !hasRitualProgress) {
+      return {
+        stepIndicatorLabel: 'Step 2 · Set your intention',
+        stepIndicatorHint: 'Add a guiding question to focus the reading, or skip if you prefer intuition.',
+      };
+    }
+
+    if (!hasRitualProgress) {
+      return {
+        stepIndicatorLabel: 'Step 3 · Optional rituals',
+        stepIndicatorHint: 'Knock or cut the deck if that supports your practice, or head straight to the draw.',
+      };
+    }
+
+    return {
+      stepIndicatorLabel: 'Step 4 · Draw your cards',
+      stepIndicatorHint: 'When you feel ready, draw the cards to begin your reading.',
+    };
+  }, [
+    hasNarrative,
+    narrativeInProgress,
+    hasReading,
+    allCardsRevealed,
+    hasQuestion,
+    hasRitualProgress,
+    hasConfirmedSpread
+  ]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-amber-50">
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 lg:py-10">
@@ -796,22 +871,13 @@ export default function TarotReading() {
 
         {/* Step 1–3: Spread + Intention + Rituals */}
         <section className="mb-6 xl:mb-4" aria-label="Reading setup">
-          <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4 text-[9px] sm:text-xs uppercase tracking-[0.16em] text-amber-300/80">
-            <span className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/60 font-semibold">
-              Step 1 · Choose spread
-            </span>
-            <span className="px-2 py-1 rounded-full bg-emerald-500/5 border border-emerald-400/30">
-              Step 2 · Set intention (optional)
-            </span>
-            <span className="px-2 py-1 rounded-full bg-emerald-500/5 border border-emerald-400/30">
-              Step 3 · Add rituals (optional)
-            </span>
-            <span className="px-2 py-1 rounded-full bg-slate-900/90 border border-amber-500/30">
-              Step 4 · Draw & reveal
-            </span>
-            <span className="px-2 py-1 rounded-full bg-slate-900/90 border border-amber-500/30">
-              Step 5 · Read narrative
-            </span>
+          <div className="mb-4 sm:mb-5">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.18em] text-emerald-300/85">
+              {stepIndicatorLabel}
+            </p>
+            <p className="mt-1 text-amber-100/80 text-xs sm:text-sm">
+              {stepIndicatorHint}
+            </p>
           </div>
 
           <div className="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1.6fr)] xl:items-start">
@@ -833,6 +899,7 @@ export default function TarotReading() {
                 setCutIndex={setCutIndex}
                 knockTimesRef={knockTimesRef}
                 deckSize={deckSize}
+                onSpreadConfirm={() => setHasConfirmedSpread(true)}
               />
             </div>
 
@@ -1247,14 +1314,6 @@ export default function TarotReading() {
                     This reading considered card combinations, positions, emotional arcs, and your reflections to provide
                     personalized guidance.
                   </p>
-                  <button
-                    onClick={shuffle}
-                    className="mt-1 sm:mt-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-indigo-950 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg transition-all flex items-center gap-2 text-sm sm:text-base"
-                  >
-                    <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden xs:inline">Draw New Reading</span>
-                    <span className="xs:hidden">New Reading</span>
-                  </button>
                 </div>
               </div>
             )}
@@ -1272,6 +1331,19 @@ export default function TarotReading() {
                 </p>
               </div>
             )}
+
+            {/* Draw New Reading CTA */}
+            <div className="text-center mt-6 sm:mt-8">
+              <button
+                onClick={shuffle}
+                disabled={isShuffling}
+                className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-indigo-950 font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg transition-all inline-flex items-center gap-2 sm:gap-3 text-base sm:text-lg"
+              >
+                <RotateCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${isShuffling ? 'motion-safe:animate-spin' : ''}`} />
+                <span className="hidden xs:inline">{isShuffling ? 'Shuffling the Cards...' : 'Draw New Reading'}</span>
+                <span className="xs:hidden">{isShuffling ? 'Shuffling...' : 'New Reading'}</span>
+              </button>
+            </div>
           </div>
         )}
 

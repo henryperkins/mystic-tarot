@@ -1,6 +1,13 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { SPREADS } from '../data/spreads';
+import { MAJOR_ARCANA } from '../data/majorArcana';
+import { MINOR_ARCANA } from '../data/minorArcana';
+
+const DEFAULT_DECK_SIZE =
+  Array.isArray(MINOR_ARCANA) && MINOR_ARCANA.length === 56
+    ? MAJOR_ARCANA.length + MINOR_ARCANA.length
+    : MAJOR_ARCANA.length;
 
 export function SpreadSelector({
   selectedSpread,
@@ -17,7 +24,8 @@ export function SpreadSelector({
   setHasCut,
   setCutIndex,
   knockTimesRef,
-  deckSize = 22
+  deckSize = DEFAULT_DECK_SIZE,
+  onSpreadConfirm
 }) {
   return (
     <div className="modern-surface p-4 sm:p-6 mb-6 sm:mb-8">
@@ -45,6 +53,7 @@ export function SpreadSelector({
                 setHasCut(false);
                 setCutIndex(Math.floor(deckSize / 2));
                 knockTimesRef.current = [];
+                onSpreadConfirm?.(key);
               }}
               className={`relative p-3 sm:p-4 rounded-lg border-2 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                 isActive

@@ -810,39 +810,76 @@ export function buildRelationshipReading({
     ? cardsInfo
     : [];
   const options = getPositionOptions(themes);
+  let reversalReminderEmbedded = false;
 
   // YOU AND THEM
   let youThem = `**YOU AND THEM**\n\n`;
-  youThem += 'This section shows how your energy and their energy currently present.\n\n';
-  youThem += buildPositionCardText(
-    youCard,
-    youCard.position || 'You / your energy',
-    options
-  );
-  youThem += '\n\n';
-  const themPosition = themCard.position || 'Them / their energy';
-  const themConnector = getConnector(themPosition, 'toPrev');
-  const themText = buildPositionCardText(
-    themCard,
-    themPosition,
-    options
-  );
-  youThem += themConnector ? `${themConnector} ${themText}` : themText;
+  const dyadCards = [youCard, themCard].filter(Boolean);
 
-  // Elemental relationship between you and them (if both exist)
-  if (youCard && themCard) {
-    const elemental = analyzeElementalDignity(youCard, themCard);
-    if (elemental && elemental.description) {
-      youThem += `\n\n*Elemental interplay between you: ${elemental.description}.*`;
+  if (youCard) {
+    const youText = buildPositionCardText(
+      youCard,
+      youCard.position || 'You / your energy',
+      options
+    );
+    youThem += youText;
+
+    const youReversalNote = buildInlineReversalNote(youCard, themes, {
+      shouldIncludeReminder: !reversalReminderEmbedded
+    });
+    if (youReversalNote) {
+      youThem += `\n\n${youReversalNote.text}`;
+      if (youReversalNote.includesReminder) {
+        reversalReminderEmbedded = true;
+      }
+    }
+
+    youThem += '\n\n';
+  }
+
+  if (themCard) {
+    const themPosition = themCard.position || 'Them / their energy';
+    const themConnector = getConnector(themPosition, 'toPrev');
+    const themText = buildPositionCardText(
+      themCard,
+      themPosition,
+      options
+    );
+    youThem += themConnector ? `${themConnector} ${themText}` : themText;
+
+    const themReversalNote = buildInlineReversalNote(themCard, themes, {
+      shouldIncludeReminder: !reversalReminderEmbedded
+    });
+    if (themReversalNote) {
+      youThem += `\n\n${themReversalNote.text}`;
+      if (themReversalNote.includesReminder) {
+        reversalReminderEmbedded = true;
+      }
     }
   }
 
-  youThem += '\n\nTogether, this pairing suggests the current dynamic between you and points toward how energy is moving in this connection.';
+  const elemental = analyzeElementalDignity(youCard, themCard);
+  const summaryLines = [];
+  if (elemental && elemental.description) {
+    summaryLines.push(`*Elemental interplay between you: ${elemental.description}.*`);
+    const elementalTakeaway = buildRelationshipElementalTakeaway(elemental, youCard, themCard);
+    if (elementalTakeaway) {
+      summaryLines.push(elementalTakeaway);
+    }
+  } else {
+    summaryLines.push('Together, this pairing suggests the current dynamic between you and points toward how energy is moving in this connection.');
+  }
+  youThem += `\n\n${summaryLines.join(' ')}`;
+
+  const relationshipsMeta = elemental && elemental.description
+    ? { elementalRelationship: elemental }
+    : undefined;
 
   sections.push(
     enhanceSection(youThem, {
       type: 'relationship-dyad',
-      cards: [youCard, themCard]
+      cards: dyadCards,
+      relationships: relationshipsMeta
     }).text
   );
 
@@ -858,6 +895,17 @@ export function buildRelationshipReading({
       options
     );
     connection += connectionConnector ? `${connectionConnector} ${connectionText}` : connectionText;
+
+    const connectionReversalNote = buildInlineReversalNote(connectionCard, themes, {
+      shouldIncludeReminder: !reversalReminderEmbedded
+    });
+    if (connectionReversalNote) {
+      connection += `\n\n${connectionReversalNote.text}`;
+      if (connectionReversalNote.includesReminder) {
+        reversalReminderEmbedded = true;
+      }
+    }
+
     connection += '\n\nThis focus invites you to notice what this bond is asking from both of you next.';
     sections.push(
       enhanceSection(connection, {
@@ -870,6 +918,7 @@ export function buildRelationshipReading({
   // GUIDANCE FOR THIS CONNECTION
   let guidance = `**GUIDANCE FOR THIS CONNECTION**\n\n`;
   guidance += 'This guidance shows how to participate with agency, honesty, and care.\n\n';
+  const guidanceCards = [];
   if (dynamicsCard) {
     const dynamicsPosition = dynamicsCard.position || 'Dynamics / guidance';
     const dynamicsConnector = getConnector(dynamicsPosition, 'toPrev');
@@ -879,7 +928,19 @@ export function buildRelationshipReading({
       options
     );
     guidance += dynamicsConnector ? `${dynamicsConnector} ${dynamicsText}` : dynamicsText;
+
+    const dynamicsReversalNote = buildInlineReversalNote(dynamicsCard, themes, {
+      shouldIncludeReminder: !reversalReminderEmbedded
+    });
+    if (dynamicsReversalNote) {
+      guidance += `\n\n${dynamicsReversalNote.text}`;
+      if (dynamicsReversalNote.includesReminder) {
+        reversalReminderEmbedded = true;
+      }
+    }
+
     guidance += '\n\n';
+    guidanceCards.push(dynamicsCard);
   }
   if (outcomeCard) {
     const outcomePosition = outcomeCard.position || 'Outcome / what this can become';
@@ -890,18 +951,34 @@ export function buildRelationshipReading({
       options
     );
     guidance += outcomeConnector ? `${outcomeConnector} ${outcomeText}` : outcomeText;
+
+    const outcomeReversalNote = buildInlineReversalNote(outcomeCard, themes, {
+      shouldIncludeReminder: !reversalReminderEmbedded
+    });
+    if (outcomeReversalNote) {
+      guidance += `\n\n${outcomeReversalNote.text}`;
+      if (outcomeReversalNote.includesReminder) {
+        reversalReminderEmbedded = true;
+      }
+    }
+
     guidance += '\n\n';
+    guidanceCards.push(outcomeCard);
   }
 
-  guidance +=
-    'Emphasize what supports honest communication, mutual respect, and boundaries. Treat these insights as a mirror that helps you choose how to show up; never as a command to stay or leave. This connection remains a trajectory shaped by your shared choices and agency—no card fixes the outcome.';
-
-  guidance += '\n\nThis guidance invites you to choose the path that best honors honesty, care, and your own boundaries.';
+  guidance += 'Emphasize what supports honest communication, mutual respect, and boundaries. Treat these insights as a mirror that informs how you choose to show up—never as a command to stay or leave.';
+  const guidancePrompts = guidanceCards
+    .map(card => buildGuidanceActionPrompt(card, themes))
+    .filter(Boolean);
+  if (guidancePrompts.length > 0) {
+    guidance += ` ${guidancePrompts.join(' ')}`;
+  }
+  guidance += '\n\nChoose the path that best honors honesty, care, and your own boundaries—the outcome still rests in the choices you both make.';
 
   sections.push(
     enhanceSection(guidance, {
       type: 'relationship-guidance',
-      cards: [dynamicsCard, outcomeCard].filter(Boolean)
+      cards: guidanceCards
     }).text
   );
 
@@ -915,7 +992,88 @@ export function buildRelationshipReading({
     console.debug('Relationship narrative spine suggestions:', validation.suggestions || validation.sectionAnalyses);
   }
 
+  if (reversalReminderEmbedded) {
+    return full;
+  }
+
   return appendReversalReminder(full, cardsInfo, themes);
+}
+
+function buildRelationshipElementalTakeaway(elemental, youCard, themCard) {
+  if (!elemental || !elemental.relationship) {
+    return '';
+  }
+
+  const youName = youCard?.card || 'your card';
+  const themName = themCard?.card || 'their card';
+
+  switch (elemental.relationship) {
+    case 'supportive':
+      return `Lean into this cooperative current by naming what ${youName} and ${themName} each need, then offer one concrete gesture that supports both.`;
+    case 'tension':
+      return `If friction flares between ${youName} and ${themName}, pause to acknowledge it aloud and agree on one boundary or adjustment that keeps the exchange balanced.`;
+    case 'amplified':
+      return `Because both cards amplify the same element, channel that intensity intentionally—co-create a ritual or conversation that directs this shared energy toward something constructive.`;
+    default:
+      return 'Stay curious about how each of you is showing up today and keep checking in so the energy stays responsive, not reactive.';
+  }
+}
+
+function buildGuidanceActionPrompt(cardInfo, themes) {
+  if (!cardInfo) return '';
+
+  const cardName = cardInfo.card || 'This card';
+  const clause = extractCoreTheme(cardInfo.meaning);
+  if (!clause) return '';
+
+  const clauseLower = decapitalize(clause);
+  const isReversed = (cardInfo.orientation || '').toLowerCase() === 'reversed';
+
+  if (isReversed) {
+    const lensName = themes?.reversalDescription?.name;
+    const lensPrefix = lensName ? `Within the ${lensName} lens, ` : '';
+    return `${lensPrefix}${cardName} reversed asks you to notice where ${clauseLower} feels blocked and to agree on one practical step that eases the pressure.`;
+  }
+
+  return `${cardName} invites you to practice ${clauseLower} together—pick one specific action or conversation that expresses it this week.`;
+}
+
+function buildInlineReversalNote(cardInfo, themes, { shouldIncludeReminder = false } = {}) {
+  if (
+    !cardInfo ||
+    (cardInfo.orientation || '').toLowerCase() !== 'reversed' ||
+    !themes?.reversalDescription
+  ) {
+    return null;
+  }
+
+  const clause = extractCoreTheme(cardInfo.meaning);
+  const clauseLower = clause ? decapitalize(clause) : 'the blocked lesson';
+  const cardName = cardInfo.card || 'This card';
+
+  if (shouldIncludeReminder) {
+    const lensGuidance = buildReversalGuidance(themes.reversalDescription);
+    return {
+      text: `*Reversal lens reminder: ${lensGuidance} For ${cardName}, focus on where ${clauseLower} needs gentle attention before momentum can return.*`,
+      includesReminder: true
+    };
+  }
+
+  return {
+    text: `*${cardName} reversed spotlights where ${clauseLower} needs gentle attention before momentum can return.*`,
+    includesReminder: false
+  };
+}
+
+function extractCoreTheme(meaning) {
+  if (!meaning || typeof meaning !== 'string') return '';
+  const firstClause = meaning.split(/[.;]/)[0];
+  return firstClause.trim();
+}
+
+function decapitalize(text) {
+  if (!text) return '';
+  return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
 export function buildDecisionReading({
