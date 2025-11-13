@@ -4,7 +4,9 @@ import { EXAMPLE_QUESTIONS } from '../data/exampleQuestions';
 export function QuestionInput({ userQuestion, setUserQuestion, placeholderIndex }) {
   return (
     <div className="modern-surface p-6 mb-8">
-      <label className="block text-amber-200 font-serif mb-3">Your Question or Intention (Optional)</label>
+      <label className="block text-amber-200 font-serif mb-3 text-sm sm:text-base">
+        Step 2 · Your question or intention <span className="text-amber-300/80 text-xs font-normal">(optional)</span>
+      </label>
       <input
         type="text"
         value={userQuestion}

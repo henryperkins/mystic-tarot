@@ -794,8 +794,26 @@ export default function TarotReading() {
           </div>
         )}
 
-        {/* Spread + Controls layout */}
-        <section className="mb-6 xl:mb-4">
+        {/* Step 1–3: Spread + Intention + Rituals */}
+        <section className="mb-6 xl:mb-4" aria-label="Reading setup">
+          <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4 text-[9px] sm:text-xs uppercase tracking-[0.16em] text-amber-300/80">
+            <span className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/60 font-semibold">
+              Step 1 · Choose spread
+            </span>
+            <span className="px-2 py-1 rounded-full bg-emerald-500/5 border border-emerald-400/30">
+              Step 2 · Set intention (optional)
+            </span>
+            <span className="px-2 py-1 rounded-full bg-emerald-500/5 border border-emerald-400/30">
+              Step 3 · Add rituals (optional)
+            </span>
+            <span className="px-2 py-1 rounded-full bg-slate-900/90 border border-amber-500/30">
+              Step 4 · Draw & reveal
+            </span>
+            <span className="px-2 py-1 rounded-full bg-slate-900/90 border border-amber-500/30">
+              Step 5 · Read narrative
+            </span>
+          </div>
+
           <div className="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1.6fr)] xl:items-start">
             {/* Spread selection (primary) */}
             <div aria-label="Choose your spread">
@@ -858,18 +876,24 @@ export default function TarotReading() {
           </div>
         </section>
 
-        {/* Shuffle Button */}
-        <section className="text-center mb-8 sm:mb-10" aria-label="Draw cards">
-          <button
-            onClick={shuffle}
-            disabled={isShuffling}
-            className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-indigo-950 font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg transition-all inline-flex items-center gap-2 sm:gap-3 text-base sm:text-lg"
-          >
-            <RotateCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${isShuffling ? 'motion-safe:animate-spin' : ''}`} />
-            <span className="hidden xs:inline">{isShuffling ? 'Shuffling the Cards...' : 'Draw Cards'}</span>
-            <span className="xs:hidden">{isShuffling ? 'Shuffling...' : 'Draw'}</span>
-          </button>
-        </section>
+        {/* Primary CTA: only visible before a spread exists */}
+        {!reading && (
+          <section className="text-center mb-8 sm:mb-10" aria-label="Draw cards">
+            <button
+              onClick={shuffle}
+              disabled={isShuffling}
+              className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-indigo-950 font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg transition-all inline-flex items-center gap-2 sm:gap-3 text-base sm:text-lg"
+            >
+              <RotateCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${isShuffling ? 'motion-safe:animate-spin' : ''}`} />
+                  <span className="hidden xs:inline">
+                    {isShuffling ? 'Shuffling the Cards...' : 'Draw Cards'}
+                  </span>
+                  <span className="xs:hidden">
+                    {isShuffling ? 'Shuffling...' : 'Draw'}
+                  </span>
+            </button>
+          </section>
+        )}
 
         {/* Reading Display */}
         {reading && (
@@ -924,15 +948,19 @@ export default function TarotReading() {
              </div>
            )}
 
-            {/* Deal next card */}
+            {/* Deal next card (adaptive CTA copy) */}
             {reading && revealedCards.size < reading.length && (
               <div className="text-center">
                 <button
                   onClick={dealNext}
                   className="mt-2 bg-amber-600/30 hover:bg-amber-600/50 border-2 border-amber-500 text-amber-200 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg transition-all text-sm sm:text-base"
                 >
-                  <span className="hidden xs:inline">Deal next card ({dealIndex + 1}/{reading.length})</span>
-                  <span className="xs:hidden">Next ({dealIndex + 1}/{reading.length})</span>
+                  <span className="hidden xs:inline">
+                    Reveal next card ({Math.min(dealIndex + 1, reading.length)}/{reading.length})
+                  </span>
+                  <span className="xs:hidden">
+                    Next ({Math.min(dealIndex + 1, reading.length)}/{reading.length})
+                  </span>
                 </button>
               </div>
             )}

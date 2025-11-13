@@ -22,7 +22,7 @@ export function SettingsToggles({
         aria-expanded={isExpanded}
         aria-controls="settings-content"
       >
-        <span className="text-amber-200 font-serif text-sm">Experience Settings</span>
+        <span className="text-amber-200 font-serif text-sm">Step 3 · Experience settings</span>
         {isExpanded ? <ChevronUp className="w-4 h-4 text-amber-300" /> : <ChevronDown className="w-4 h-4 text-amber-300" />}
       </button>
 

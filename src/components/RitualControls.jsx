@@ -39,18 +39,18 @@ export function RitualControls({
           <button
             type="button"
             onClick={handleKnock}
-            className={`px-4 py-2 rounded-lg border ${
+            className={`px-4 py-2 rounded-lg border text-xs sm:text-sm ${
               hasKnocked
-                ? 'border-emerald-500/60 bg-emerald-500/12'
-                : 'border-emerald-400/30 bg-slate-900/80 hover:bg-slate-800/90'
+                ? 'border-emerald-500/60 bg-emerald-500/12 text-emerald-200'
+                : 'border-emerald-400/30 bg-slate-900/80 text-amber-100/90 hover:bg-slate-800/90'
             }`}
             aria-pressed={hasKnocked}
             title="Knock up to 3 times"
           >
-            {hasKnocked ? 'Cleared ✓' : 'Knock 3x'}
+            {hasKnocked ? 'Cleared · 3 of 3' : `Knock ${Math.min(knocksCount + 1, 3)} of 3`}
           </button>
-          <div className="text-amber-100/60 text-xs mt-2">
-            Knocks: {knocksCount}/3 • Your rhythm influences the cards drawn.
+          <div className="text-amber-100/70 text-[10px] sm:text-xs mt-2">
+            Ritual progress: {knocksCount}/3 knocks registered.
           </div>
         </div>
 
@@ -74,18 +74,19 @@ export function RitualControls({
             <button
               type="button"
               onClick={applyCut}
-              className={`w-full sm:w-auto px-3 py-2 rounded-lg border ${
+              className={`w-full sm:w-auto px-3 py-2 rounded-lg border text-xs sm:text-sm ${
                 hasCut
-                  ? 'border-emerald-500/60 bg-emerald-500/12'
-                  : 'border-emerald-400/30 bg-slate-900/80 hover:bg-slate-800/90'
+                  ? 'border-emerald-500/60 bg-emerald-500/12 text-emerald-200'
+                  : 'border-emerald-400/30 bg-slate-900/80 text-amber-100/90 hover:bg-slate-800/90'
               }`}
               aria-pressed={hasCut}
             >
-              {hasCut ? 'Cut set ✓' : 'Set cut'}
+              {hasCut ? 'Cut confirmed' : 'Confirm cut'}
             </button>
           </div>
-          <div className="text-xs text-amber-100/60 mt-1">
-            Cut at: {cutIndex} • Where you cut shapes which cards appear.
+          <div className="text-[10px] sm:text-xs text-amber-100/70 mt-1">
+            Cut at <span className="font-semibold">{cutIndex}</span> of {deckSize} · This point influences which cards appear.
+            {hasCut && <span className="ml-1 text-emerald-300">Cut locked in.</span>}
           </div>
         </div>
       </div>
