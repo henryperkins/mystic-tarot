@@ -40,30 +40,65 @@ export const onRequestGet = async ({ env }) => {
 };
 
 export const onRequestPost = async ({ request, env }) => {
+  const startTime = Date.now();
+  const requestId = crypto.randomUUID ? crypto.randomUUID() : `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  console.log(`[${requestId}] === TAROT READING REQUEST START ===`);
+
   try {
+    console.log(`[${requestId}] Reading request body...`);
     const payload = await readRequestBody(request);
     const { spreadInfo, cardsInfo, userQuestion, reflectionsText, reversalFrameworkOverride } = payload;
 
+    console.log(`[${requestId}] Payload parsed:`, {
+      spreadName: spreadInfo?.name,
+      cardCount: cardsInfo?.length,
+      hasQuestion: !!userQuestion,
+      hasReflections: !!reflectionsText,
+      reversalOverride: reversalFrameworkOverride
+    });
+
     const validationError = validatePayload(payload);
     if (validationError) {
+      console.error(`[${requestId}] Validation failed:`, validationError);
       return jsonResponse(
         { error: validationError },
         { status: 400 }
       );
     }
+    console.log(`[${requestId}] Payload validation passed`);
+
 
     // STEP 1: Comprehensive spread analysis
+    console.log(`[${requestId}] Starting spread analysis...`);
+    const analysisStart = Date.now();
     const analysis = await performSpreadAnalysis(spreadInfo, cardsInfo, {
       reversalFrameworkOverride
+    }, requestId);
+    const analysisTime = Date.now() - analysisStart;
+    console.log(`[${requestId}] Spread analysis completed in ${analysisTime}ms:`, {
+      spreadKey: analysis.spreadKey,
+      hasSpreadAnalysis: !!analysis.spreadAnalysis,
+      reversalCount: analysis.themes?.reversalCount,
+      reversalFramework: analysis.themes?.reversalFramework
     });
 
     const context = inferContext(userQuestion, analysis.spreadKey);
+    console.log(`[${requestId}] Context inferred: ${context}`);
 
     // STEP 2: Generate reading (Azure GPT-5 via Responses API or local)
     let reading;
     let usedAzureGPT5 = false;
 
     if (env && env.AZURE_OPENAI_API_KEY && env.AZURE_OPENAI_ENDPOINT && env.AZURE_OPENAI_GPT5_MODEL) {
+      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials found, attempting generation...`);
+      console.log(`[${requestId}] Azure config:`, {
+        endpoint: env.AZURE_OPENAI_ENDPOINT,
+        model: env.AZURE_OPENAI_GPT5_MODEL,
+        hasApiKey: !!env.AZURE_OPENAI_API_KEY
+      });
+
+      const azureStart = Date.now();
       try {
         reading = await generateWithAzureGPT5Responses(env, {
           spreadInfo,
@@ -72,14 +107,28 @@ export const onRequestPost = async ({ request, env }) => {
           reflectionsText,
           analysis,
           context
-        });
+        }, requestId);
+        const azureTime = Date.now() - azureStart;
+        console.log(`[${requestId}] Azure GPT-5 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
         usedAzureGPT5 = true;
       } catch (err) {
-        console.error('Azure OpenAI GPT-5 Responses API generation failed, falling back to local composer:', err);
+        const azureTime = Date.now() - azureStart;
+        console.error(`[${requestId}] Azure OpenAI GPT-5 generation failed after ${azureTime}ms, falling back to local composer:`, {
+          error: err.message,
+          stack: err.stack
+        });
       }
+    } else {
+      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials not configured, using local composer`, {
+        hasApiKey: !!env?.AZURE_OPENAI_API_KEY,
+        hasEndpoint: !!env?.AZURE_OPENAI_ENDPOINT,
+        hasModel: !!env?.AZURE_OPENAI_GPT5_MODEL
+      });
     }
 
     if (!reading) {
+      console.log(`[${requestId}] Generating reading with local composer...`);
+      const localStart = Date.now();
       // Local fallback with validation; never return empty silently
       reading = composeReadingEnhanced({
         spreadInfo,
@@ -89,9 +138,11 @@ export const onRequestPost = async ({ request, env }) => {
         analysis,
         context
       });
+      const localTime = Date.now() - localStart;
+      console.log(`[${requestId}] Local composer completed in ${localTime}ms, reading length: ${reading?.length || 0}`);
 
       if (!reading || !reading.toString().trim()) {
-        console.error('composeReadingEnhanced returned empty reading; returning structured error.');
+        console.error(`[${requestId}] composeReadingEnhanced returned empty reading; returning structured error.`);
         return jsonResponse(
           { error: 'Analysis failed to produce a narrative. Please retry your reading.' },
           { status: 500 }
@@ -103,9 +154,15 @@ export const onRequestPost = async ({ request, env }) => {
     // - spreadAnalysis: canonical source for patterns/highlights
     // - themes: shared thematic summary
     // Frontend should trust these when present, and only fall back locally if missing.
+    const totalTime = Date.now() - startTime;
+    const provider = usedAzureGPT5 ? 'azure-gpt5' : 'local';
+
+    console.log(`[${requestId}] Request completed successfully in ${totalTime}ms using provider: ${provider}`);
+    console.log(`[${requestId}] === TAROT READING REQUEST END ===`);
+
     return jsonResponse({
       reading,
-      provider: usedClaude ? 'anthropic-claude-sonnet-4.5' : 'local',
+      provider,
       themes: analysis.themes,
       context,
       spreadAnalysis: {
@@ -117,7 +174,14 @@ export const onRequestPost = async ({ request, env }) => {
       }
     });
   } catch (error) {
-    console.error('tarot-reading function error:', error);
+    const totalTime = Date.now() - startTime;
+    console.error(`[${requestId}] FATAL ERROR after ${totalTime}ms:`, {
+      error: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    console.log(`[${requestId}] === TAROT READING REQUEST END (ERROR) ===`);
+
     return jsonResponse(
       { error: 'Failed to generate reading.' },
       { status: 500 }
@@ -129,10 +193,10 @@ export const onRequestPost = async ({ request, env }) => {
  * Perform comprehensive spread analysis
  * Returns themes, spread-specific relationships, and elemental insights
  */
-async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}) {
+async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}, requestId = 'unknown') {
   // Guard against malformed input (defensive: validatePayload should have run already)
   if (!spreadInfo || !Array.isArray(cardsInfo) || cardsInfo.length === 0) {
-    console.warn('performSpreadAnalysis: missing or invalid spreadInfo/cardsInfo, falling back to generic themes only.');
+    console.warn(`[${requestId}] performSpreadAnalysis: missing or invalid spreadInfo/cardsInfo, falling back to generic themes only.`);
     return {
       themes: { suitCounts: {}, elementCounts: {}, reversalCount: 0, reversalFramework: 'contextual', reversalDescription: { name: 'Context-Dependent', description: 'Reversed cards are interpreted individually based on context.', guidance: 'Read each reversal in light of its position and relationships.' } },
       spreadAnalysis: null,
@@ -143,11 +207,18 @@ async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}) {
   // Theme analysis (suits, elements, majors, reversals)
   let themes;
   try {
+    console.log(`[${requestId}] Analyzing spread themes...`);
     themes = await analyzeSpreadThemes(cardsInfo, {
       reversalFrameworkOverride: options.reversalFrameworkOverride
     });
+    console.log(`[${requestId}] Theme analysis complete:`, {
+      suitCounts: themes.suitCounts,
+      elementCounts: themes.elementCounts,
+      reversalCount: themes.reversalCount,
+      framework: themes.reversalFramework
+    });
   } catch (err) {
-    console.error('performSpreadAnalysis: analyzeSpreadThemes failed, using minimal fallback themes.', err);
+    console.error(`[${requestId}] performSpreadAnalysis: analyzeSpreadThemes failed, using minimal fallback themes.`, err);
     themes = {
       suitCounts: {},
       elementCounts: {},
@@ -167,16 +238,25 @@ async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}) {
 
   try {
     spreadKey = getSpreadKey(spreadInfo.name);
+    console.log(`[${requestId}] Spread key identified: ${spreadKey}`);
 
     if (spreadKey === 'celtic' && cardsInfo.length === 10) {
+      console.log(`[${requestId}] Performing Celtic Cross analysis...`);
       spreadAnalysis = analyzeCelticCross(cardsInfo);
+      console.log(`[${requestId}] Celtic Cross analysis complete`);
     } else if (spreadKey === 'threeCard' && cardsInfo.length === 3) {
+      console.log(`[${requestId}] Performing Three-Card analysis...`);
       spreadAnalysis = analyzeThreeCard(cardsInfo);
+      console.log(`[${requestId}] Three-Card analysis complete`);
     } else if (spreadKey === 'fiveCard' && cardsInfo.length === 5) {
+      console.log(`[${requestId}] Performing Five-Card analysis...`);
       spreadAnalysis = analyzeFiveCard(cardsInfo);
+      console.log(`[${requestId}] Five-Card analysis complete`);
+    } else {
+      console.log(`[${requestId}] No specific analysis for spreadKey: ${spreadKey} with ${cardsInfo.length} cards`);
     }
   } catch (err) {
-    console.error('performSpreadAnalysis: spread-specific analysis failed, continuing with themes only.', err);
+    console.error(`[${requestId}] performSpreadAnalysis: spread-specific analysis failed, continuing with themes only.`, err);
     spreadAnalysis = null;
     spreadKey = 'general';
   }
@@ -249,6 +329,142 @@ function validatePayload({ spreadInfo, cardsInfo }) {
   }
 
   return null;
+}
+
+/**
+ * Generate reading using Azure OpenAI GPT-5 via Responses API
+ *
+ * The Responses API is the recommended API for GPT-5 models, bringing together
+ * the best capabilities from chat completions and assistants API.
+ *
+ * API Reference: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses
+ */
+async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, userQuestion, reflectionsText, analysis, context }, requestId = 'unknown') {
+  const endpoint = env.AZURE_OPENAI_ENDPOINT.replace(/\/+$/, '');
+  const apiKey = env.AZURE_OPENAI_API_KEY;
+  const modelName = env.AZURE_OPENAI_GPT5_MODEL; // Model name like "gpt-5", "gpt-5-mini", etc.
+
+  console.log(`[${requestId}] Building Azure GPT-5 prompts...`);
+
+  // Build enhanced prompts using narrative builder
+  const { systemPrompt, userPrompt } = buildEnhancedClaudePrompt({
+    spreadInfo,
+    cardsInfo,
+    userQuestion,
+    reflectionsText,
+    themes: analysis.themes,
+    spreadAnalysis: analysis.spreadAnalysis,
+    context
+  });
+
+  console.log(`[${requestId}] System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
+
+  // Azure OpenAI Responses API endpoint format (v1 API required for GPT-5):
+  // POST {endpoint}/openai/v1/responses
+  const url = `${endpoint}/openai/v1/responses`;
+
+  console.log(`[${requestId}] Making Azure GPT-5 Responses API request to: ${url}`);
+  console.log(`[${requestId}] Using model: ${modelName}`);
+
+  // Dynamic reasoning effort based on model capabilities
+  // - gpt-5-pro: ONLY supports 'high'
+  // - gpt-5-codex: supports low/medium/high (not minimal)
+  // - Other GPT-5 models: support low/medium/high
+  let reasoningEffort = 'medium'; // Default for most models
+  if (modelName && modelName.toLowerCase().includes('gpt-5-pro')) {
+    reasoningEffort = 'high'; // gpt-5-pro only supports high
+    console.log(`[${requestId}] Detected gpt-5-pro, using 'high' reasoning effort`);
+  }
+
+  // Responses API uses a different structure than Chat Completions
+  // System prompts go in "instructions", user content in "input"
+  const requestBody = {
+    model: modelName,
+    instructions: systemPrompt,
+    input: userPrompt,
+    max_output_tokens: 1500,
+    temperature: 0.7,
+    reasoning: {
+      effort: reasoningEffort // Dynamically set based on model
+    },
+    text: {
+      verbosity: 'medium' // low, medium, or high - controls output conciseness
+    }
+  };
+
+  console.log(`[${requestId}] Request config:`, {
+    model: requestBody.model,
+    max_output_tokens: requestBody.max_output_tokens,
+    temperature: requestBody.temperature,
+    reasoning_effort: requestBody.reasoning.effort,
+    verbosity: requestBody.text.verbosity
+  });
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  console.log(`[${requestId}] Azure Responses API response status: ${response.status}`);
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    console.error(`[${requestId}] Azure Responses API error response:`, errText);
+    throw new Error(`Azure OpenAI GPT-5 Responses API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  console.log(`[${requestId}] Azure Responses API response received:`, {
+    id: data.id,
+    model: data.model,
+    status: data.status,
+    outputCount: data.output?.length,
+    usage: data.usage
+  });
+
+  // Responses API returns output as an array of output items
+  // Extract text from message output items
+  let content = '';
+  if (data.output && Array.isArray(data.output)) {
+    for (const item of data.output) {
+      // Handle message output type
+      if (item.type === 'message' && item.content) {
+        for (const contentItem of item.content) {
+          if (contentItem.type === 'output_text' && contentItem.text) {
+            content += contentItem.text;
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback: try output_text property (some models use this)
+  if (!content && data.output_text) {
+    content = data.output_text;
+  }
+
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    console.error(`[${requestId}] Empty or invalid response from Azure GPT-5:`, {
+      hasOutput: !!data.output,
+      outputLength: data.output?.length,
+      status: data.status
+    });
+    throw new Error('Empty response from Azure OpenAI GPT-5 Responses API');
+  }
+
+  console.log(`[${requestId}] Generated reading length: ${content.length} characters`);
+  console.log(`[${requestId}] Token usage:`, {
+    input_tokens: data.usage?.input_tokens,
+    output_tokens: data.usage?.output_tokens,
+    reasoning_tokens: data.usage?.output_tokens_details?.reasoning_tokens,
+    total_tokens: data.usage?.total_tokens
+  });
+
+  return content.trim();
 }
 
 /**
