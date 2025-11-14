@@ -9,9 +9,11 @@ dist/
 .env.local
 .env*.local
 
-# Wrangler
+# Wrangler secrets (DO NOT COMMIT!)
 .wrangler/
 wrangler.toml.local
+.dev.vars
+.dev.vars.*
 
 # Logs
 logs

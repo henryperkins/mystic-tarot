@@ -342,7 +342,9 @@ function validatePayload({ spreadInfo, cardsInfo }) {
 async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, userQuestion, reflectionsText, analysis, context }, requestId = 'unknown') {
   const endpoint = env.AZURE_OPENAI_ENDPOINT.replace(/\/+$/, '');
   const apiKey = env.AZURE_OPENAI_API_KEY;
-  const modelName = env.AZURE_OPENAI_GPT5_MODEL; // Model name like "gpt-5", "gpt-5-mini", etc.
+  const deploymentName = env.AZURE_OPENAI_GPT5_MODEL; // Azure deployment name (often mirrors the base model name)
+  // Responses API requires v1 path format with 'preview' API version
+  const apiVersion = env.AZURE_OPENAI_API_VERSION || 'preview';
 
   console.log(`[${requestId}] Building Azure GPT-5 prompts...`);
 
@@ -359,19 +361,20 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
 
   console.log(`[${requestId}] System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
 
-  // Azure OpenAI Responses API endpoint format (v1 API required for GPT-5):
-  // POST {endpoint}/openai/v1/responses
-  const url = `${endpoint}/openai/v1/responses`;
+  // Azure OpenAI Responses API endpoint format (v1 API):
+  // POST {endpoint}/openai/v1/responses?api-version=preview
+  // Model is passed in the request body, NOT in the URL path
+  const url = `${endpoint}/openai/v1/responses?api-version=${encodeURIComponent(apiVersion)}`;
 
   console.log(`[${requestId}] Making Azure GPT-5 Responses API request to: ${url}`);
-  console.log(`[${requestId}] Using model: ${modelName}`);
+  console.log(`[${requestId}] Using deployment: ${deploymentName}, api-version: ${apiVersion}`);
 
   // Dynamic reasoning effort based on model capabilities
   // - gpt-5-pro: ONLY supports 'high'
   // - gpt-5-codex: supports low/medium/high (not minimal)
   // - Other GPT-5 models: support low/medium/high
   let reasoningEffort = 'medium'; // Default for most models
-  if (modelName && modelName.toLowerCase().includes('gpt-5-pro')) {
+  if (deploymentName && deploymentName.toLowerCase().includes('gpt-5-pro')) {
     reasoningEffort = 'high'; // gpt-5-pro only supports high
     console.log(`[${requestId}] Detected gpt-5-pro, using 'high' reasoning effort`);
   }
@@ -379,7 +382,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   // Responses API uses a different structure than Chat Completions
   // System prompts go in "instructions", user content in "input"
   const requestBody = {
-    model: modelName,
+    model: deploymentName,
     instructions: systemPrompt,
     input: userPrompt,
     max_output_tokens: 1500,
@@ -393,7 +396,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   };
 
   console.log(`[${requestId}] Request config:`, {
-    model: requestBody.model,
+    deployment: deploymentName,
     max_output_tokens: requestBody.max_output_tokens,
     temperature: requestBody.temperature,
     reasoning_effort: requestBody.reasoning.effort,

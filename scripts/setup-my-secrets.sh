@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Mystic Tarot - Production Secrets Setup
+# This script securely prompts for your Azure OpenAI credentials and uploads them to Cloudflare Pages
+
+set -e
+
+PROJECT_NAME="mystic-tarot"
+
+echo "=================================================="
+echo "  Mystic Tarot - Cloudflare Pages Secrets Setup"
+echo "=================================================="
+echo ""
+echo "This script will upload your Azure OpenAI credentials"
+echo "to Cloudflare Pages as encrypted secrets."
+echo ""
+echo "⚠️  IMPORTANT: Make sure you have:"
+echo "   1. Wrangler installed: npm install -g wrangler"
+echo "   2. Authenticated: wrangler login"
+echo ""
+
+read -p "Press Enter to continue or Ctrl+C to cancel..."
+
+echo ""
+echo "📝 Setting up Azure OpenAI GPT-5 (Responses API) secrets..."
+echo ""
+
+# GPT-5 Endpoint
+read -p "Enter your Azure OpenAI Endpoint (e.g., https://your-resource.openai.azure.com): " gpt5_endpoint
+echo "$gpt5_endpoint" | wrangler pages secret put AZURE_OPENAI_ENDPOINT --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_ENDPOINT set"
+
+# GPT-5 API Key
+echo ""
+echo "Enter your Azure OpenAI API Key (input will be hidden):"
+read -s gpt5_api_key
+echo "$gpt5_api_key" | wrangler pages secret put AZURE_OPENAI_API_KEY --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_API_KEY set"
+
+# GPT-5 Model Deployment Name
+echo ""
+read -p "Enter your GPT-5 deployment name (e.g., gpt-5): " gpt5_model
+echo "$gpt5_model" | wrangler pages secret put AZURE_OPENAI_GPT5_MODEL --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_GPT5_MODEL set"
+
+echo ""
+echo "📝 Setting up Azure OpenAI TTS secrets..."
+echo ""
+
+# TTS Endpoint
+read -p "Enter your Azure TTS Endpoint (e.g., https://your-tts-resource.openai.azure.com): " tts_endpoint
+echo "$tts_endpoint" | wrangler pages secret put AZURE_OPENAI_TTS_ENDPOINT --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_TTS_ENDPOINT set"
+
+# TTS API Key
+echo ""
+echo "Enter your Azure TTS API Key (input will be hidden):"
+read -s tts_api_key
+echo "$tts_api_key" | wrangler pages secret put AZURE_OPENAI_TTS_API_KEY --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_TTS_API_KEY set"
+
+# TTS Deployment Name
+echo ""
+read -p "Enter your TTS deployment name (e.g., gpt-audio-mini): " tts_deployment
+echo "$tts_deployment" | wrangler pages secret put AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT --project-name=$PROJECT_NAME
+echo "✅ AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT set"
+
+echo ""
+echo "=================================================="
+echo "  ✅ All Secrets Successfully Configured!"
+echo "=================================================="
+echo ""
+echo "🔍 Verifying secrets..."
+wrangler pages secret list --project-name=$PROJECT_NAME
+echo ""
+echo "🚀 Next steps:"
+echo "   1. Build your project: npm run build"
+echo "   2. Deploy to Cloudflare: npm run deploy"
+echo "   3. Test deployment: curl https://mystic-tarot.pages.dev/api/tarot-reading"
+echo ""
+echo "📝 Your secrets are now encrypted and stored securely in Cloudflare."
+echo "   You can deploy safely without exposing credentials!"
+echo ""

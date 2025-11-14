@@ -1,4 +1,5 @@
 name = "mystic-tarot"
+compatibility_date = "2025-01-13"
 pages_build_output_dir = "dist"
 
 # Azure OpenAI Configuration
@@ -14,12 +15,11 @@ pages_build_output_dir = "dist"
 #   - AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT
 #
 # Optional environment variables (with defaults in code):
-#   - AZURE_OPENAI_API_VERSION (defaults to "2024-08-01-preview" or "preview")
+#   - AZURE_OPENAI_API_VERSION (defaults to "preview" for Responses API v1 format)
 #   - AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT (defaults to "mp3")
-#   - AZURE_OPENAI_USE_V1_FORMAT (defaults to false)
 
 [vars]
 # Optional configuration variables with safe defaults
-# API version for TTS/Audio API (not used by Responses API which uses v1 path format)
-AZURE_OPENAI_API_VERSION = "2025-04-01-preview"
+# API version: Use "preview" for Responses API (GPT-5), or dated version for TTS/Audio API
+AZURE_OPENAI_API_VERSION = "preview"
 AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT = "mp3"
