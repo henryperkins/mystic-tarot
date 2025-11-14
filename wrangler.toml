@@ -20,6 +20,8 @@ pages_build_output_dir = "dist"
 
 [vars]
 # Optional configuration variables with safe defaults
-# API version: Use "preview" for Responses API (GPT-5), or dated version for TTS/Audio API
+# API version: Use "preview" for Responses API (GPT-5) and TTS v1 format
 AZURE_OPENAI_API_VERSION = "preview"
 AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT = "mp3"
+# Use v1 format for TTS API (recommended for newer deployments)
+AZURE_OPENAI_USE_V1_FORMAT = "true"

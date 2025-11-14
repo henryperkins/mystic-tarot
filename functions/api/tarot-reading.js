@@ -381,12 +381,12 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
 
   // Responses API uses a different structure than Chat Completions
   // System prompts go in "instructions", user content in "input"
+  // Note: Responses API does NOT support temperature parameter
   const requestBody = {
     model: deploymentName,
     instructions: systemPrompt,
     input: userPrompt,
     max_output_tokens: 1500,
-    temperature: 0.7,
     reasoning: {
       effort: reasoningEffort // Dynamically set based on model
     },
@@ -398,7 +398,6 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   console.log(`[${requestId}] Request config:`, {
     deployment: deploymentName,
     max_output_tokens: requestBody.max_output_tokens,
-    temperature: requestBody.temperature,
     reasoning_effort: requestBody.reasoning.effort,
     verbosity: requestBody.text.verbosity
   });
