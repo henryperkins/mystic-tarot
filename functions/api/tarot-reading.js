@@ -386,7 +386,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
     model: deploymentName,
     instructions: systemPrompt,
     input: userPrompt,
-    max_output_tokens: 1500,
+    max_output_tokens: 3000,
     reasoning: {
       effort: reasoningEffort // Dynamically set based on model
     },
