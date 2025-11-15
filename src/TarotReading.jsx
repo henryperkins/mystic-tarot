@@ -13,7 +13,9 @@ import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { StepProgress } from './components/StepProgress';
 import { HelperToggle } from './components/HelperToggle';
 import { GlobalNav } from './components/GlobalNav';
-import { useNavigate } from 'react-router-dom'; // Assuming React Router for navigation, adjust if needed
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { useJournal } from './hooks/useJournal';
 import { getDeckPool, computeSeed, computeRelationships, drawSpread } from './lib/deck';
 import {
   initAudio,
@@ -109,7 +111,9 @@ export default function TarotReading() {
     }
     return { ...DEFAULT_PREPARE_SECTIONS };
   });
-  const navigate = useNavigate(); // For journal navigation
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { saveEntry } = useJournal();
 
   const knockTimesRef = useRef([]);
   const shuffleTimeoutRef = useRef(null);
@@ -450,13 +454,6 @@ export default function TarotReading() {
       });
       return;
     }
-    if (typeof localStorage === 'undefined') {
-      setJournalStatus({
-        type: 'error',
-        message: 'This browser does not support journal saving.'
-      });
-      return;
-    }
 
     const entry = {
       deckMode: includeMinors ? 'full' : 'majors',
@@ -471,53 +468,37 @@ export default function TarotReading() {
         orientation: card.isReversed ? 'Reversed' : 'Upright'
       })),
       reflections,
-      // Save both raw markdown and formatted versions
       personalReading: personalReading?.raw || personalReading?.normalized || '',
-      // Keep formatted version for potential future use
       personalReadingFormatted: personalReading,
       themes: themes || null,
       context: analysisContext || null
     };
 
-    try {
-      const key = 'tarot_journal';
-      let list = [];
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            list = parsed;
-          }
-        } catch (parseError) {
-          console.warn('Resetting tarot journal cache due to parse error.', parseError);
+    // Use the journal hook to save
+    saveEntry(entry).then((result) => {
+      if (result.success) {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(12);
         }
+        setJournalStatus({
+          type: 'success',
+          message: isAuthenticated 
+            ? 'Saved to your journal (synced across devices).'
+            : 'Saved to your journal (locally).'
+        });
+      } else {
+        setJournalStatus({
+          type: 'error',
+          message: result.error || 'Unable to save to your journal. Please try again.'
+        });
       }
-      list.unshift(entry);
-      if (list.length > 100) {
-        list.length = 100;
-      }
-      localStorage.setItem(key, JSON.stringify(list));
-      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-        navigator.vibrate(12);
-      }
-      setJournalStatus({
-        type: 'success',
-        message: 'Saved to your journal.'
-      });
-    } catch (error) {
+    }).catch((error) => {
       console.error('Failed to save tarot reading', error);
-      const quotaError =
-        error?.name === 'QuotaExceededError' ||
-        error?.code === 22 ||
-        error?.code === 1014;
       setJournalStatus({
         type: 'error',
-        message: quotaError
-          ? 'Storage is full or unavailable. Clear space or exit private browsing, then try again.'
-          : 'Unable to save to your journal. Please try again.'
+        message: 'Unable to save to your journal. Please try again.'
       });
-    }
+    });
   }
 
   const isPersonalReadingError = Boolean(personalReading?.isError);
