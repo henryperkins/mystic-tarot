@@ -9,11 +9,16 @@ Mystic Tarot is a React-based interactive tarot reading web application built wi
 It is designed to feel like sitting with a practiced reader using a real deck, not a generic “card of the day” widget. The app encodes authentic spreads, visual language, and interpretation frameworks directly into its UX.
 
 - Frontend: React + Vite, with ritual controls, spread selector, guided questions, and authentic card rendering.
-- Backend: Cloudflare Pages Function `functions/api/tarot-reading.js` handles narrative composition (Anthropic Claude Sonnet 4.5 when available, otherwise deterministic local logic).
+- Backend: Cloudflare Pages Functions handle:
+  - `functions/api/tarot-reading.js` - narrative composition (Anthropic Claude Sonnet 4.5 when available, otherwise deterministic local logic)
+  - `functions/api/auth/*` - user authentication (register, login, logout)
+  - `functions/api/journal/*` - persistent journal storage
+- Database: Cloudflare D1 for user accounts and journal persistence
 - Deck: Major Arcana modeled with upright/reversed meanings in `src/data/majorArcana.js`.
   - Minors (beta): When enabled via the "Minors (beta)" toggle, deck construction uses [`getDeckPool(includeMinors)`](src/lib/deck.js:65) to include `MINOR_ARCANA` only if the dataset is complete (length 56). If not, it safely falls back to Majors-only.
 - Spreads: Real-world formats and position prompts in `src/data/spreads.js`.
 - Audio/TTS: Optional ambient sound and narration wired via `src/lib/audio.js` and `functions/api/tts.js`.
+- Journal: User readings can be saved locally (localStorage) or to the cloud (D1) with authentication.
 
 ## Development Commands
 
@@ -54,6 +59,13 @@ The application has been refactored from a single-component monolith into a modu
 - `RitualControls.jsx` — Knock and cut deck ritual inputs feeding seeded shuffle.
 - `Card.jsx` — Single card display with authentic visuals and reflection input.
 - `ReadingGrid.jsx` — Grid layout and position labels for the chosen spread.
+- `Journal.jsx` — Journal view displaying saved readings with auth integration.
+- `AuthModal.jsx` — Login/signup modal for user authentication.
+
+**Context & Hooks** (in `src/contexts/` and `src/hooks/`):
+
+- `AuthContext.jsx` — Authentication state management (login, register, logout).
+- `useJournal.js` — Hook for journal CRUD operations with API/localStorage fallback.
 
 **Data Modules** (in `src/data/`):
 
@@ -105,6 +117,24 @@ The application has been refactored from a single-component monolith into a modu
 
 - `tts.js`
   - Bridges readings to synthesized audio using Azure OpenAI TTS (if configured).
+
+- `auth/register.js`, `auth/login.js`, `auth/logout.js`, `auth/me.js`
+  - User authentication endpoints with session management.
+  - Uses `functions/lib/auth.js` for password hashing and token validation.
+
+- `journal/index.js`, `journal/[id].js`
+  - Journal CRUD operations with authentication.
+  - GET /api/journal - fetch user's readings
+  - POST /api/journal - save new reading
+  - DELETE /api/journal/[id] - delete specific reading
+
+**Database** (Cloudflare D1):
+
+- `users` table - user accounts (email, username, password hash)
+- `journal_entries` table - saved readings with full context
+- `sessions` table - authentication sessions with expiry
+
+See `docs/AUTHENTICATION.md` for full setup and usage details.
 
 ## Authentic Reading Flow (What the Code is Aiming For)
 
