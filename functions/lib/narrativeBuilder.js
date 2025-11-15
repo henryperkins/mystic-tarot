@@ -1279,70 +1279,58 @@ export function buildRelationshipReading({
     );
   }
 
-  // GUIDANCE FOR THIS CONNECTION
+  // GUIDANCE FOR THIS CONNECTION (three-card friendly)
+  const primaryGuidanceCards = [dynamicsCard, outcomeCard].filter(Boolean);
+  const fallbackGuidanceCard = primaryGuidanceCards[0] || connectionCard || themCard || youCard;
+
   let guidance = `**GUIDANCE FOR THIS CONNECTION**\n\n`;
   guidance += 'This guidance shows how to participate with agency, honesty, and care.\n\n';
-  const guidanceCards = [];
-  if (dynamicsCard) {
-    const dynamicsPosition = dynamicsCard.position || 'Dynamics / guidance';
-    const dynamicsConnector = getConnector(dynamicsPosition, 'toPrev');
-    const dynamicsText = buildPositionCardText(
-      dynamicsCard,
-      dynamicsPosition,
+
+  if (fallbackGuidanceCard) {
+    const fallbackPosition = fallbackGuidanceCard.position
+      ? fallbackGuidanceCard.position
+      : fallbackGuidanceCard === youCard
+        ? 'You / your energy'
+        : fallbackGuidanceCard === themCard
+          ? 'Them / their energy'
+          : fallbackGuidanceCard === dynamicsCard
+            ? 'Dynamics / guidance'
+            : fallbackGuidanceCard === outcomeCard
+              ? 'Outcome / what this can become'
+              : 'The connection / shared lesson';
+    const fallbackConnector = getConnector(fallbackPosition, 'toPrev');
+    const fallbackText = buildPositionCardText(
+      fallbackGuidanceCard,
+      fallbackPosition,
       options
     );
-    guidance += dynamicsConnector ? `${dynamicsConnector} ${dynamicsText}` : dynamicsText;
+    guidance += fallbackConnector ? `${fallbackConnector} ${fallbackText}\n\n` : `${fallbackText}\n\n`;
 
-    const dynamicsReversalNote = buildInlineReversalNote(dynamicsCard, themes, {
+    const fallbackReversal = buildInlineReversalNote(fallbackGuidanceCard, themes, {
       shouldIncludeReminder: !reversalReminderEmbedded
     });
-    if (dynamicsReversalNote) {
-      guidance += `\n\n${dynamicsReversalNote.text}`;
-      if (dynamicsReversalNote.includesReminder) {
+    if (fallbackReversal) {
+      guidance += `${fallbackReversal.text}\n\n`;
+      if (fallbackReversal.includesReminder) {
         reversalReminderEmbedded = true;
       }
     }
-
-    guidance += '\n\n';
-    guidanceCards.push(dynamicsCard);
-  }
-  if (outcomeCard) {
-    const outcomePosition = outcomeCard.position || 'Outcome / what this can become';
-    const outcomeConnector = getConnector(outcomePosition, 'toPrev');
-    const outcomeText = buildPositionCardText(
-      outcomeCard,
-      outcomePosition,
-      options
-    );
-    guidance += outcomeConnector ? `${outcomeConnector} ${outcomeText}` : outcomeText;
-
-    const outcomeReversalNote = buildInlineReversalNote(outcomeCard, themes, {
-      shouldIncludeReminder: !reversalReminderEmbedded
-    });
-    if (outcomeReversalNote) {
-      guidance += `\n\n${outcomeReversalNote.text}`;
-      if (outcomeReversalNote.includesReminder) {
-        reversalReminderEmbedded = true;
-      }
-    }
-
-    guidance += '\n\n';
-    guidanceCards.push(outcomeCard);
   }
 
-  guidance += 'Emphasize what supports honest communication, mutual respect, and boundaries. Treat these insights as a mirror that informs how you choose to show up—never as a command to stay or leave.';
-  const guidancePrompts = guidanceCards
+  const actionSources = [youCard, themCard, connectionCard, dynamicsCard, outcomeCard].filter(Boolean);
+  const guidancePrompts = actionSources
     .map(card => buildGuidanceActionPrompt(card, themes))
     .filter(Boolean);
   if (guidancePrompts.length > 0) {
-    guidance += ` ${guidancePrompts.join(' ')}`;
+    guidance += `${guidancePrompts.join(' ')}\n\n`;
   }
-  guidance += '\n\nChoose the path that best honors honesty, care, and your own boundaries—the outcome still rests in the choices you both make.';
+
+  guidance += 'Emphasize honest communication, reciprocal care, and boundaries. Treat these insights as a mirror that informs how you choose to show up—never as a command to stay or leave. Choose the path that best honors honesty, care, and your own boundaries—the outcome still rests in the choices you both make.';
 
   sections.push(
     enhanceSection(guidance, {
       type: 'relationship-guidance',
-      cards: guidanceCards
+      cards: actionSources
     }).text
   );
 
@@ -2062,10 +2050,10 @@ function buildFiveCardPromptCards(cardsInfo, fiveCardAnalysis, themes, context) 
 
 function buildRelationshipPromptCards(cardsInfo, themes, context) {
   const options = getPositionOptions(themes, context);
-  const [youCard, themCard, connectionCard, dynamicsCard, outcomeCard] = cardsInfo;
+  const [youCard, themCard, connectionCard, ...extraCards] = cardsInfo;
 
   let out = `**RELATIONSHIP SNAPSHOT STRUCTURE**\n`;
-  out += `- You / your energy\n- Them / their energy\n- The connection / shared lesson\n- Dynamics / guidance\n- Outcome / what this can become\n\n`;
+  out += `- You / your energy\n- Them / their energy\n- The connection / shared lesson\n\n`;
 
   if (youCard) {
     out += buildCardWithImagery(youCard, youCard.position || 'You / your energy', options);
@@ -2080,19 +2068,14 @@ function buildRelationshipPromptCards(cardsInfo, themes, context) {
       options
     );
   }
-  if (dynamicsCard) {
-    out += buildCardWithImagery(
-      dynamicsCard,
-      dynamicsCard.position || 'Dynamics / guidance',
-      options
-    );
-  }
-  if (outcomeCard) {
-    out += buildCardWithImagery(
-      outcomeCard,
-      outcomeCard.position || 'Outcome / what this can become',
-      options
-    );
+
+  if (extraCards.length > 0) {
+    out += `\n**ADDITIONAL INSIGHT CARDS**\n`;
+    extraCards.forEach((card, idx) => {
+      if (!card) return;
+      const label = card.position || `Additional insight ${idx + 1}`;
+      out += buildCardWithImagery(card, label, options);
+    });
   }
 
   return out;

@@ -4,7 +4,7 @@
  * Enhanced with authentic position-relationship analysis, elemental dignities,
  * and spread-specific narrative construction.
  *
- * Delegates narrative synthesis to Azure OpenAI GPT-5 via the Responses API
+ * Delegates narrative synthesis to Azure OpenAI GPT-5.1 via the Responses API
  * when AZURE_OPENAI_API_KEY / AZURE_OPENAI_ENDPOINT / AZURE_OPENAI_GPT5_MODEL are configured.
  * Falls back to local deterministic composer with full analysis.
  */
@@ -30,11 +30,39 @@ import {
 import { enhanceSection } from '../lib/narrativeSpine.js';
 import { inferContext } from '../lib/contextDetection.js';
 
+const SPREAD_NAME_MAP = {
+  'Celtic Cross (Classic 10-Card)': { key: 'celtic', count: 10 },
+  'Three-Card Story (Past · Present · Future)': { key: 'threeCard', count: 3 },
+  'Five-Card Clarity': { key: 'fiveCard', count: 5 },
+  'One-Card Insight': { key: 'single', count: 1 },
+  'Relationship Snapshot': { key: 'relationship', count: 3 },
+  'Decision / Two-Path': { key: 'decision', count: 5 }
+};
+
+function getSpreadDefinition(spreadName) {
+  return SPREAD_NAME_MAP[spreadName] || null;
+}
+
+function getExpectedCardCount(spreadName) {
+  const def = getSpreadDefinition(spreadName);
+  return def?.count ?? null;
+}
+
+function getSpreadKey(spreadName) {
+  const def = getSpreadDefinition(spreadName);
+  return def?.key || 'general';
+}
+
+function requiresHighReasoningEffort(modelName = '') {
+  const normalized = modelName.toLowerCase();
+  return normalized.includes('gpt-5-pro') || normalized.includes('gpt-5.1-pro');
+}
+
 export const onRequestGet = async ({ env }) => {
   // Health check endpoint
   return jsonResponse({
     status: 'ok',
-    provider: env?.AZURE_OPENAI_GPT5_MODEL ? 'azure-gpt5' : 'local',
+    provider: env?.AZURE_OPENAI_GPT5_MODEL ? 'azure-gpt5.1' : 'local',
     timestamp: new Date().toISOString()
   });
 };
@@ -86,12 +114,12 @@ export const onRequestPost = async ({ request, env }) => {
     const context = inferContext(userQuestion, analysis.spreadKey);
     console.log(`[${requestId}] Context inferred: ${context}`);
 
-    // STEP 2: Generate reading (Azure GPT-5 via Responses API or local)
+    // STEP 2: Generate reading (Azure GPT-5.1 via Responses API or local)
     let reading;
-    let usedAzureGPT5 = false;
+    let usedAzureGPT = false;
 
     if (env && env.AZURE_OPENAI_API_KEY && env.AZURE_OPENAI_ENDPOINT && env.AZURE_OPENAI_GPT5_MODEL) {
-      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials found, attempting generation...`);
+      console.log(`[${requestId}] Azure OpenAI GPT-5.1 credentials found, attempting generation...`);
       console.log(`[${requestId}] Azure config:`, {
         endpoint: env.AZURE_OPENAI_ENDPOINT,
         model: env.AZURE_OPENAI_GPT5_MODEL,
@@ -109,17 +137,17 @@ export const onRequestPost = async ({ request, env }) => {
           context
         }, requestId);
         const azureTime = Date.now() - azureStart;
-        console.log(`[${requestId}] Azure GPT-5 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
-        usedAzureGPT5 = true;
+        console.log(`[${requestId}] Azure GPT-5.1 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
+        usedAzureGPT = true;
       } catch (err) {
         const azureTime = Date.now() - azureStart;
-        console.error(`[${requestId}] Azure OpenAI GPT-5 generation failed after ${azureTime}ms, falling back to local composer:`, {
+        console.error(`[${requestId}] Azure OpenAI GPT-5.1 generation failed after ${azureTime}ms, falling back to local composer:`, {
           error: err.message,
           stack: err.stack
         });
       }
     } else {
-      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials not configured, using local composer`, {
+      console.log(`[${requestId}] Azure OpenAI GPT-5.1 credentials not configured, using local composer`, {
         hasApiKey: !!env?.AZURE_OPENAI_API_KEY,
         hasEndpoint: !!env?.AZURE_OPENAI_ENDPOINT,
         hasModel: !!env?.AZURE_OPENAI_GPT5_MODEL
@@ -155,7 +183,7 @@ export const onRequestPost = async ({ request, env }) => {
     // - themes: shared thematic summary
     // Frontend should trust these when present, and only fall back locally if missing.
     const totalTime = Date.now() - startTime;
-    const provider = usedAzureGPT5 ? 'azure-gpt5' : 'local';
+    const provider = usedAzureGPT ? 'azure-gpt5.1' : 'local';
 
     console.log(`[${requestId}] Request completed successfully in ${totalTime}ms using provider: ${provider}`);
     console.log(`[${requestId}] === TAROT READING REQUEST END ===`);
@@ -269,21 +297,6 @@ async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}, reques
 }
 
 /**
- * Get spread key from spread name
- */
-function getSpreadKey(spreadName) {
-  const map = {
-    'Celtic Cross (Classic 10-Card)': 'celtic',
-    'Three-Card Story (Past · Present · Future)': 'threeCard',
-    'Five-Card Clarity': 'fiveCard',
-    'One-Card Insight': 'single',
-    'Relationship Snapshot': 'relationship',
-    'Decision / Two-Path': 'decision'
-  };
-  return map[spreadName] || 'general';
-}
-
-/**
  * Reads JSON payload from the incoming request, handling empty or invalid bodies gracefully.
  */
 async function readRequestBody(request) {
@@ -306,13 +319,18 @@ async function readRequestBody(request) {
 /**
  * Validates the baseline structure expected by the tarot-reading endpoint.
  */
-function validatePayload({ spreadInfo, cardsInfo }) {
+export function validatePayload({ spreadInfo, cardsInfo }) {
   if (!spreadInfo || typeof spreadInfo.name !== 'string') {
     return 'Missing spread information.';
   }
 
   if (!Array.isArray(cardsInfo) || cardsInfo.length === 0) {
     return 'No cards were provided for the reading.';
+  }
+
+  const expectedCount = getExpectedCardCount(spreadInfo.name);
+  if (expectedCount !== null && cardsInfo.length !== expectedCount) {
+    return `Spread "${spreadInfo.name}" expects ${expectedCount} cards, but received ${cardsInfo.length}.`;
   }
 
   const hasInvalidCard = cardsInfo.some(card => {
@@ -332,9 +350,9 @@ function validatePayload({ spreadInfo, cardsInfo }) {
 }
 
 /**
- * Generate reading using Azure OpenAI GPT-5 via Responses API
+ * Generate reading using Azure OpenAI GPT-5.1 via Responses API
  *
- * The Responses API is the recommended API for GPT-5 models, bringing together
+ * The Responses API is the recommended API for GPT-5.1 models, bringing together
  * the best capabilities from chat completions and assistants API.
  *
  * API Reference: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses
@@ -346,7 +364,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   // Responses API requires v1 path format with 'preview' API version
   const apiVersion = env.AZURE_OPENAI_API_VERSION || 'preview';
 
-  console.log(`[${requestId}] Building Azure GPT-5 prompts...`);
+  console.log(`[${requestId}] Building Azure GPT-5.1 prompts...`);
 
   // Build enhanced prompts using narrative builder
   const { systemPrompt, userPrompt } = buildEnhancedClaudePrompt({
@@ -366,17 +384,17 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   // Model is passed in the request body, NOT in the URL path
   const url = `${endpoint}/openai/v1/responses?api-version=${encodeURIComponent(apiVersion)}`;
 
-  console.log(`[${requestId}] Making Azure GPT-5 Responses API request to: ${url}`);
+  console.log(`[${requestId}] Making Azure GPT-5.1 Responses API request to: ${url}`);
   console.log(`[${requestId}] Using deployment: ${deploymentName}, api-version: ${apiVersion}`);
 
   // Dynamic reasoning effort based on model capabilities
-  // - gpt-5-pro: ONLY supports 'high'
-  // - gpt-5-codex: supports low/medium/high (not minimal)
-  // - Other GPT-5 models: support low/medium/high
+  // - gpt-5/gpt-5.1-pro: ONLY supports 'high'
+  // - gpt-5/gpt-5.1-codex: supports low/medium/high (not minimal)
+  // - Other GPT-5 family models: support low/medium/high
   let reasoningEffort = 'medium'; // Default for most models
-  if (deploymentName && deploymentName.toLowerCase().includes('gpt-5-pro')) {
-    reasoningEffort = 'high'; // gpt-5-pro only supports high
-    console.log(`[${requestId}] Detected gpt-5-pro, using 'high' reasoning effort`);
+  if (deploymentName && requiresHighReasoningEffort(deploymentName)) {
+    reasoningEffort = 'high';
+    console.log(`[${requestId}] Detected gpt-5/gpt-5.1 pro deployment, using 'high' reasoning effort`);
   }
 
   // Responses API uses a different structure than Chat Completions
@@ -416,7 +434,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   if (!response.ok) {
     const errText = await response.text().catch(() => '');
     console.error(`[${requestId}] Azure Responses API error response:`, errText);
-    throw new Error(`Azure OpenAI GPT-5 Responses API error ${response.status}: ${errText}`);
+    throw new Error(`Azure OpenAI GPT-5.1 Responses API error ${response.status}: ${errText}`);
   }
 
   const data = await response.json();
@@ -450,13 +468,13 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   }
 
   if (!content || typeof content !== 'string' || !content.trim()) {
-    console.error(`[${requestId}] Empty or invalid response from Azure GPT-5:`, {
+    console.error(`[${requestId}] Empty or invalid response from Azure GPT-5.1:`, {
       hasOutput: !!data.output,
       outputLength: data.output?.length,
       status: data.status
     });
-    throw new Error('Empty response from Azure OpenAI GPT-5 Responses API');
-  }
+    throw new Error('Empty response from Azure OpenAI GPT-5.1 Responses API');
+}
 
   console.log(`[${requestId}] Generated reading length: ${content.length} characters`);
   console.log(`[${requestId}] Token usage:`, {

@@ -22,24 +22,24 @@ echo ""
 read -p "Press Enter to continue or Ctrl+C to cancel..."
 
 echo ""
-echo "📝 Setting up Azure OpenAI GPT-5 (Responses API) secrets..."
+echo "📝 Setting up Azure OpenAI GPT-5.1 (Responses API) secrets..."
 echo ""
 
-# GPT-5 Endpoint
+# GPT-5.1 Endpoint
 read -p "Enter your Azure OpenAI Endpoint (e.g., https://your-resource.openai.azure.com): " gpt5_endpoint
 echo "$gpt5_endpoint" | wrangler pages secret put AZURE_OPENAI_ENDPOINT --project-name=$PROJECT_NAME
 echo "✅ AZURE_OPENAI_ENDPOINT set"
 
-# GPT-5 API Key
+# GPT-5.1 API Key
 echo ""
 echo "Enter your Azure OpenAI API Key (input will be hidden):"
 read -s gpt5_api_key
 echo "$gpt5_api_key" | wrangler pages secret put AZURE_OPENAI_API_KEY --project-name=$PROJECT_NAME
 echo "✅ AZURE_OPENAI_API_KEY set"
 
-# GPT-5 Model Deployment Name
+# GPT-5.1 Model Deployment Name
 echo ""
-read -p "Enter your GPT-5 deployment name (e.g., gpt-5): " gpt5_model
+read -p "Enter your GPT-5.1 deployment name (e.g., gpt-5.1): " gpt5_model
 echo "$gpt5_model" | wrangler pages secret put AZURE_OPENAI_GPT5_MODEL --project-name=$PROJECT_NAME
 echo "✅ AZURE_OPENAI_GPT5_MODEL set"
 

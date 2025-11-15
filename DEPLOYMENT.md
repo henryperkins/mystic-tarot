@@ -48,7 +48,7 @@ For local development, secrets are stored in `.dev.vars` (already exists, **DO N
 # .dev.vars format (dotenv syntax)
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
 AZURE_OPENAI_API_KEY=your-api-key-here
-AZURE_OPENAI_GPT5_MODEL=gpt-5-mini
+AZURE_OPENAI_GPT5_MODEL=gpt-5.1
 AZURE_OPENAI_TTS_ENDPOINT=https://your-resource.openai.azure.com
 AZURE_OPENAI_TTS_API_KEY=your-tts-api-key-here
 AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT=your-tts-deployment-name
