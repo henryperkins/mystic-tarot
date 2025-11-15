@@ -1,27 +1,112 @@
+# ============================================================================
+# Cloudflare Pages Configuration - Mystic Tarot
+# ============================================================================
+# This file is the SOURCE OF TRUTH for your Pages project configuration.
+# Ref: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+#
 name = "mystic-tarot"
 compatibility_date = "2025-01-13"
 pages_build_output_dir = "dist"
 
-# Azure OpenAI Configuration
-# All credentials and endpoints are configured as encrypted secrets via:
-#   wrangler pages secret put <SECRET_NAME> --project-name=mystic-tarot
+# ============================================================================
+# Environment Variables (Non-Secret)
+# ============================================================================
+# These are SAFE to commit to git. For sensitive data, use secrets instead.
+# Ref: https://developers.cloudflare.com/pages/functions/bindings/#environment-variables
 #
-# Required secrets (set for both production and preview environments):
-#   - AZURE_OPENAI_ENDPOINT
-#   - AZURE_OPENAI_API_KEY
-#   - AZURE_OPENAI_GPT5_MODEL
-#   - AZURE_OPENAI_TTS_ENDPOINT
-#   - AZURE_OPENAI_TTS_API_KEY
-#   - AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT
-#
-# Optional environment variables (with defaults in code):
-#   - AZURE_OPENAI_API_VERSION (defaults to "preview" for Responses API v1 format)
-#   - AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT (defaults to "mp3")
-
 [vars]
-# Optional configuration variables with safe defaults
-# API version: Use "preview" for Responses API (GPT-5) and TTS v1 format
 AZURE_OPENAI_API_VERSION = "preview"
 AZURE_OPENAI_GPT_AUDIO_MINI_FORMAT = "mp3"
-# Use v1 format for TTS API (recommended for newer deployments)
 AZURE_OPENAI_USE_V1_FORMAT = "true"
+
+# ============================================================================
+# Secrets Management
+# ============================================================================
+# Secrets are ENCRYPTED and not visible after setting them.
+# Ref: https://developers.cloudflare.com/pages/functions/bindings/#secrets
+#
+# LOCAL DEVELOPMENT:
+# - Create .dev.vars file (already exists, DO NOT COMMIT)
+# - Format: SECRET_NAME=value (one per line)
+#
+# PRODUCTION DEPLOYMENT:
+# Set secrets using wrangler CLI:
+#
+#   wrangler pages secret put AZURE_OPENAI_ENDPOINT --project-name=mystic-tarot
+#   wrangler pages secret put AZURE_OPENAI_API_KEY --project-name=mystic-tarot
+#   wrangler pages secret put AZURE_OPENAI_GPT5_MODEL --project-name=mystic-tarot
+#   wrangler pages secret put AZURE_OPENAI_TTS_ENDPOINT --project-name=mystic-tarot
+#   wrangler pages secret put AZURE_OPENAI_TTS_API_KEY --project-name=mystic-tarot
+#   wrangler pages secret put AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT --project-name=mystic-tarot
+#
+# PREVIEW ENVIRONMENT:
+# For branch deployments, add --env=preview:
+#
+#   wrangler pages secret put AZURE_OPENAI_API_KEY --project-name=mystic-tarot --env=preview
+#
+# LIST SECRETS:
+#   wrangler pages secret list --project-name=mystic-tarot
+#
+# DELETE SECRET:
+#   wrangler pages secret delete AZURE_OPENAI_API_KEY --project-name=mystic-tarot
+#
+# Required Secrets for this project:
+# - AZURE_OPENAI_ENDPOINT (Azure OpenAI endpoint URL)
+# - AZURE_OPENAI_API_KEY (Azure OpenAI API key)
+# - AZURE_OPENAI_GPT5_MODEL (Deployment name, e.g., "gpt-5-mini")
+# - AZURE_OPENAI_TTS_ENDPOINT (TTS endpoint, can be same as above)
+# - AZURE_OPENAI_TTS_API_KEY (TTS API key, can be same as above)
+# - AZURE_OPENAI_GPT_AUDIO_MINI_DEPLOYMENT (TTS deployment name)
+
+# ============================================================================
+# Bindings (Currently None Configured)
+# ============================================================================
+# Bindings connect your Functions to Cloudflare services.
+# Ref: https://developers.cloudflare.com/pages/functions/bindings/
+#
+# Examples for future use:
+#
+# KV Namespace (for caching readings, rate limiting):
+# [[kv_namespaces]]
+# binding = "TAROT_CACHE"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-kv-namespace-id"
+#
+# D1 Database (for reading history, analytics):
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "mystic-tarot-db"
+# database_id = "your-database-id"
+#
+# R2 Bucket (for storing audio files):
+# [[r2_buckets]]
+# binding = "AUDIO_STORAGE"
+# bucket_name = "mystic-tarot-audio"
+# preview_bucket_name = "mystic-tarot-audio-preview"
+#
+# Durable Objects (must be created as separate Worker):
+# [[durable_objects.bindings]]
+# name = "READING_SESSION"
+# class_name = "ReadingSession"
+# script_name = "reading-session-worker"
+#
+# Analytics Engine:
+# [[analytics_engine_datasets]]
+# binding = "ANALYTICS"
+
+# ============================================================================
+# Local Development Settings
+# ============================================================================
+# Ref: https://developers.cloudflare.com/pages/functions/local-development/
+#
+# [dev]
+# ip = "127.0.0.1"
+# port = 8788
+# local_protocol = "http"
+
+# ============================================================================
+# Compatibility Flags
+# ============================================================================
+# Enable Node.js compatibility if needed for imports
+# [compatibility_flags]
+# nodejs_compat = true

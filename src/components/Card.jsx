@@ -102,6 +102,8 @@ export function Card({
   reflections,
   setReflections
 }) {
+  const reflectionValue = reflections[index] || '';
+
   return (
     <div
       key={`${card.name}-${index}`}
@@ -241,14 +243,20 @@ export function Card({
               <div className="mt-3">
                 <label className="text-amber-100/85 text-xs-plus sm:text-sm block mb-1">What resonates for you?</label>
                 <textarea
-                  value={reflections[index] || ''}
+                  value={reflectionValue}
                   onChange={event =>
                     setReflections(prev => ({ ...prev, [index]: event.target.value }))
                   }
-                  rows={2}
-                  className="w-full bg-slate-950/85 border border-emerald-400/40 rounded p-2 text-amber-100/90 text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-emerald-400/55"
-                  placeholder="Write a sentence or two..."
+                  rows={3}
+                  maxLength={500}
+                  className="w-full bg-slate-950/85 border border-emerald-400/40 rounded p-2 min-h-[4.5rem] resize-y text-amber-100/90 text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-emerald-400/55"
+                  placeholder="What resonates? (optional)"
                 />
+                {reflectionValue.length > 0 && (
+                  <div className="mt-1 text-xs text-amber-300/70 text-right">
+                    {reflectionValue.length} / 500
+                  </div>
+                )}
               </div>
             </div>
           )}

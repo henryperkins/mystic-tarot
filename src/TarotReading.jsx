@@ -814,7 +814,7 @@ export default function TarotReading() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-amber-50">
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 lg:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-5 md:px-6 py-6 sm:py-8 lg:py-10">
         {/* Header */}
         <header aria-labelledby="mystic-tarot-heading">
           <div className="text-center mb-6 sm:mb-8 mystic-heading-wrap">
@@ -952,12 +952,7 @@ export default function TarotReading() {
               className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-indigo-950 font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg transition-all inline-flex items-center gap-2 sm:gap-3 text-base sm:text-lg"
             >
               <RotateCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${isShuffling ? 'motion-safe:animate-spin' : ''}`} />
-                  <span className="hidden xs:inline">
-                    {isShuffling ? 'Shuffling the Cards...' : 'Draw Cards'}
-                  </span>
-                  <span className="xs:hidden">
-                    {isShuffling ? 'Shuffling...' : 'Draw'}
-                  </span>
+              <span>{isShuffling ? 'Shuffling the Cards...' : 'Draw Cards'}</span>
             </button>
           </section>
         )}
@@ -991,8 +986,7 @@ export default function TarotReading() {
                   className="bg-amber-600/30 hover:bg-amber-600/50 border-2 border-amber-500 text-amber-200 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg transition-all flex items-center gap-2 sm:gap-3 mx-auto text-sm sm:text-base"
                 >
                   <Star className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden xs:inline">Reveal All Cards</span>
-                  <span className="xs:hidden">Reveal All</span>
+                  <span>Reveal All Cards</span>
                 </button>
                 <p className="text-amber-300/80 text-xs sm:text-sm mt-2 sm:mt-3">
                   {revealedCards.size} of {reading.length} cards revealed
@@ -1022,11 +1016,8 @@ export default function TarotReading() {
                   onClick={dealNext}
                   className="mt-2 bg-amber-600/30 hover:bg-amber-600/50 border-2 border-amber-500 text-amber-200 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg transition-all text-sm sm:text-base"
                 >
-                  <span className="hidden xs:inline">
-                    Reveal next card ({Math.min(dealIndex + 1, reading.length)}/{reading.length})
-                  </span>
-                  <span className="xs:hidden">
-                    Next ({Math.min(dealIndex + 1, reading.length)}/{reading.length})
+                  <span>
+                    Reveal Next Card ({Math.min(dealIndex + 1, reading.length)}/{reading.length})
                   </span>
                 </button>
               </div>
@@ -1049,7 +1040,14 @@ export default function TarotReading() {
                   <Star className="w-4 h-4 sm:w-5 sm:h-5" />
                   Spread Highlights
                 </h3>
-                <div className="space-y-2 sm:space-y-3 text-amber-100/85 text-sm leading-relaxed max-h-[40vh] sm:max-h-none overflow-y-auto">
+                <p className="sr-only" id="spread-highlights-scroll-hint">
+                  Additional highlights may be hidden; swipe or scroll within the list to read them all.
+                </p>
+                <div
+                  className="relative"
+                  aria-describedby="spread-highlights-scroll-hint"
+                >
+                  <div className="space-y-2 sm:space-y-3 text-amber-100/85 text-sm leading-relaxed max-h-[56vh] sm:max-h-none overflow-y-auto overscroll-y-contain pr-1">
                  <div className="flex items-start gap-3">
                    <div className="text-amber-300 mt-1">-</div>
                    <div>
@@ -1162,8 +1160,16 @@ export default function TarotReading() {
                         <span className="font-semibold text-cyan-300">Card Connection:</span> {relationship.text}
                       </div>
                     </div>
-                  ))}
+                 ))}
+                  </div>
+                  <div
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950 via-slate-950/85 to-transparent sm:hidden"
+                    aria-hidden="true"
+                  />
                 </div>
+                <p className="text-amber-300/75 text-xs sm:text-sm text-center sm:hidden">
+                  Swipe to explore additional highlights.
+                </p>
               </div>
             )}
 
@@ -1177,19 +1183,11 @@ export default function TarotReading() {
                  >
                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 ${isGenerating ? 'motion-safe:animate-pulse' : ''}`} />
                    {isGenerating ? (
-                     <>
-                       <span className="hidden sm:inline">
-                         Weaving your personalized reflection from this spread...
-                       </span>
-                       <span className="sm:hidden">
-                         Generating...
-                       </span>
-                     </>
+                     <span className="text-sm sm:text-base">
+                       Weaving your personalized reflection from this spread...
+                     </span>
                    ) : (
-                     <>
-                       <span className="hidden xs:inline">Generate personalized narrative</span>
-                       <span className="xs:hidden">Generate narrative</span>
-                     </>
+                     <span>Create Personal Narrative</span>
                    )}
                  </button>
                  <p className="text-emerald-300/80 text-xs sm:text-sm mt-2 sm:mt-3 max-w-xl mx-auto mobile-hide sm:block">
