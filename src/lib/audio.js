@@ -18,47 +18,56 @@ let currentNarrationRequestId = 0;
 let activeNarrationId = null;
 let cancelledUpToRequestId = 0;
 let audioUnlocked = false;
-let unlockAttempted = false;
+let audioUnlockPromise = null;
+let unlockListenersRegistered = false;
 
 /**
  * Unlock audio playback by creating and playing a silent audio element.
  * Must be called from a user interaction event (click, touch, keydown, etc.)
  * to satisfy browser autoplay policies.
  */
-export function unlockAudio() {
-  if (audioUnlocked || unlockAttempted) return true;
+export async function unlockAudio() {
+  if (audioUnlocked) return true;
   if (typeof Audio === 'undefined' || typeof window === 'undefined') return false;
 
-  unlockAttempted = true;
+  if (audioUnlockPromise) {
+    return audioUnlockPromise;
+  }
 
+  let silentAudio;
   try {
-    // Create a silent audio element and play it to unlock the audio context
-    const silentAudio = new Audio('data:audio/mp3;base64,//MkxAAHiAICWABElBeKPL/RANb2w+yiT1g/gTok//lP/W/l3h8QO/OCdCqCW2Cw//MkxAQHkAIWUAhEmAQXWUOFW2dxPu//9mr60ElY5sseQ+xxesmHKtZr7bsqqX2L//MkxAgFwAYiQAhEAC2hq22d3///9FTV6tA36JdgBJoOGgc+7qvqej5Zu7/7uI9l//MkxBQHAAYi8AhEAO193vt9KGOq+6qcT7hhfN5FTInmwk8RkqKImTM55pRQHQSq//MkxBsGkgoIAABHhTACIJLf99nVI///yuW1uBqWfEu7CgNPWGpUadBmZ////4sL//MkxCMHMAH9iABEmAsKioqKigsLCwtVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVV//MkxCkECAUYCAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+    silentAudio = new Audio('data:audio/mp3;base64,//MkxAAHiAICWABElBeKPL/RANb2w+yiT1g/gTok//lP/W/l3h8QO/OCdCqCW2Cw//MkxAQHkAIWUAhEmAQXWUOFW2dxPu//9mr60ElY5sseQ+xxesmHKtZr7bsqqX2L//MkxAgFwAYiQAhEAC2hq22d3///9FTV6tA36JdgBJoOGgc+7qvqej5Zu7/7uI9l//MkxBQHAAYi8AhEAO193vt9KGOq+6qcT7hhfN5FTInmwk8RkqKImTM55pRQHQSq//MkxBsGkgoIAABHhTACIJLf99nVI///yuW1uBqWfEu7CgNPWGpUadBmZ////4sL//MkxCMHMAH9iABEmAsKioqKigsLCwtVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVV//MkxCkECAUYCAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
     silentAudio.volume = 0.01; // Nearly silent
-    const playPromise = silentAudio.play();
-
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          audioUnlocked = true;
-          console.log('[Audio] Audio context unlocked');
-          silentAudio.pause();
-          silentAudio.currentTime = 0;
-        })
-        .catch(() => {
-          // Still locked, but we tried
-          console.warn('[Audio] Audio unlock failed - user interaction needed');
-        });
-    } else {
-      // Old browser without promise-based play
-      audioUnlocked = true;
-    }
-
-    return audioUnlocked;
   } catch (err) {
-    console.warn('[Audio] Error unlocking audio:', err);
+    console.warn('[Audio] Error creating unlock audio element:', err);
     return false;
   }
+
+  audioUnlockPromise = (async () => {
+    try {
+      const playPromise = silentAudio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        await playPromise;
+      }
+      audioUnlocked = true;
+      console.log('[Audio] Audio context unlocked');
+      return true;
+    } catch (err) {
+      console.warn('[Audio] Audio unlock failed - user interaction needed', err);
+      audioUnlocked = false;
+      return false;
+    } finally {
+      try {
+        silentAudio.pause();
+        silentAudio.currentTime = 0;
+      } catch {
+        // no-op
+      }
+      audioUnlockPromise = null;
+    }
+  })();
+
+  return audioUnlockPromise;
 }
 
 export function initAudio() {
@@ -70,17 +79,20 @@ export function initAudio() {
   }
 
   // Set up unlock listeners on first init
-  if (typeof window !== 'undefined' && !unlockAttempted) {
+  if (typeof window !== 'undefined' && !unlockListenersRegistered) {
+    unlockListenersRegistered = true;
     const unlockEvents = ['click', 'touchstart', 'keydown'];
     const unlockHandler = () => {
-      unlockAudio();
-      // Remove listeners after first successful unlock attempt
-      unlockEvents.forEach(event => {
-        window.removeEventListener(event, unlockHandler);
+      void unlockAudio().then(success => {
+        if (success) {
+          unlockEvents.forEach(event => {
+            window.removeEventListener(event, unlockHandler);
+          });
+        }
       });
     };
     unlockEvents.forEach(event => {
-      window.addEventListener(event, unlockHandler, { once: true, passive: true });
+      window.addEventListener(event, unlockHandler, { passive: true });
     });
   }
 
@@ -286,11 +298,8 @@ export async function speakText({ text, enabled, context = 'default', voice = 'v
 
     // Ensure audio is unlocked before attempting playback
     if (!audioUnlocked) {
-      // Try to unlock now (works if called from user interaction)
-      unlockAudio();
-
-      // If still not unlocked, show helpful message
-      if (!audioUnlocked) {
+      const unlocked = await unlockAudio();
+      if (!unlocked) {
         emitTTSState({
           status: 'error',
           provider,
