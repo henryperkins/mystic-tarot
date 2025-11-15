@@ -97,11 +97,19 @@ export default function TarotReading() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [showAllHighlights, setShowAllHighlights] = useState(false);
 
+  const prefersReducedMotion = () => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false;
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  };
+
   const handleStepNav = stepId => {
     const target = stepSectionRefs[stepId]?.current;
     if (target && typeof target.scrollIntoView === 'function') {
+      const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
       target.scrollIntoView({
-        behavior: 'smooth',
+        behavior,
         block: 'start'
       });
     }
@@ -301,7 +309,7 @@ export default function TarotReading() {
       enabled: voiceOn,
       context,
       voice: 'nova' // Default voice for mystical tarot readings
-      // speed: defaults to 0.95 (contemplative pace) in audio.js
+      // speed: defaults to 1.1 (engaging pace) in tts.js backend
       // stream: defaults to false (complete audio, with caching) in audio.js
     });
   }
@@ -468,6 +476,16 @@ export default function TarotReading() {
   const helperId = inlineStatusMessage ? 'personal-reading-tts-helper' : undefined;
   const journalStatusId = journalStatus ? 'personal-reading-journal-status' : undefined;
   const canSaveReading = Boolean(reading && personalReading && !isPersonalReadingError);
+  const liveRegionMessage = [ttsAnnouncement, journalStatus?.message].filter(Boolean).join(' ');
+  const baseMobileActionButtonClass =
+    'flex-1 min-w-[7.5rem] inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed';
+  const mobileActionButtonVariants = {
+    primary: 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-900/40 hover:bg-amber-400',
+    secondary: 'bg-emerald-500/15 text-emerald-100 border border-emerald-400/40 hover:bg-emerald-500/25',
+    ghost: 'bg-slate-900/60 text-amber-200 border border-amber-200/30 hover:bg-slate-900/80'
+  };
+  const getMobileActionButtonClass = variant =>
+    `${baseMobileActionButtonClass} ${mobileActionButtonVariants[variant] || mobileActionButtonVariants.secondary}`;
 
   const handleNarrationButtonClick = () => {
     if (!voiceOn || !isNarrationAvailable || isPersonalReadingError) return;
@@ -887,6 +905,85 @@ export default function TarotReading() {
   const allCardsRevealed = hasReading && revealedCards.size === reading.length;
   const hasNarrative = Boolean(personalReading);
   const narrativeInProgress = isGenerating && !personalReading;
+  const mobileActionBarButtons = (() => {
+    const buttons = [];
+
+    if (isShuffling) {
+      buttons.push({
+        key: 'shuffling',
+        label: 'Shuffling…',
+        onClick: null,
+        disabled: true,
+        variant: 'primary'
+      });
+      return buttons;
+    }
+
+    if (!reading) {
+      buttons.push({
+        key: 'draw',
+        label: 'Draw Cards',
+        onClick: shuffle,
+        disabled: false,
+        variant: 'primary'
+      });
+      return buttons;
+    }
+
+    if (reading && revealedCards.size < reading.length) {
+      buttons.push({
+        key: 'reveal-next',
+        label: `Reveal Next (${Math.min(dealIndex + 1, reading.length)}/${reading.length})`,
+        onClick: dealNext,
+        disabled: false,
+        variant: 'primary'
+      });
+
+      if (reading.length > 1) {
+        buttons.push({
+          key: 'reveal-all',
+          label: 'Reveal All',
+          onClick: revealAll,
+          disabled: false,
+          variant: 'secondary'
+        });
+      }
+
+      buttons.push({
+        key: 'new-reading',
+        label: 'New Reading',
+        onClick: shuffle,
+        disabled: false,
+        variant: 'ghost'
+      });
+
+      return buttons;
+    }
+
+    if (reading && revealedCards.size === reading.length) {
+      if (canSaveReading) {
+        buttons.push({
+          key: 'save',
+          label: 'Save to Journal',
+          onClick: saveReading,
+          disabled: false,
+          variant: 'primary'
+        });
+      }
+
+      buttons.push({
+        key: 'shuffle-ready',
+        label: 'New Reading',
+        onClick: shuffle,
+        disabled: false,
+        variant: canSaveReading ? 'secondary' : 'primary'
+      });
+
+      return buttons;
+    }
+
+    return buttons;
+  })();
 
   const { stepIndicatorLabel, stepIndicatorHint, activeStep } = useMemo(() => {
     if (hasNarrative) {
@@ -961,8 +1058,11 @@ export default function TarotReading() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-amber-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-5 md:px-6 py-6 sm:py-8 lg:py-10">
+    <div className="app-shell min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-amber-50">
+      <main className="max-w-7xl mx-auto px-4 sm:px-5 md:px-6 pt-6 pb-28 sm:py-8 lg:py-10">
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {liveRegionMessage}
+        </div>
         {/* Header */}
         <header aria-labelledby="mystic-tarot-heading">
           <div className="text-center mb-6 sm:mb-8 mystic-heading-wrap">
@@ -1399,9 +1499,6 @@ export default function TarotReading() {
                         {journalStatus.message}
                       </p>
                     )}
-                    <div className="sr-only" role="status" aria-live="polite">
-                      {ttsAnnouncement}
-                    </div>
                   </div>
                   <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-amber-500/20 flex flex-col gap-2 sm:gap-3 items-center">
                     <HelperToggle>
@@ -1459,6 +1556,23 @@ export default function TarotReading() {
           )}
         </section>
       </main>
+      {mobileActionBarButtons.length > 0 && (
+        <nav className="mobile-action-bar sm:hidden" aria-label="Primary mobile actions">
+          <div className="flex flex-wrap gap-2">
+            {mobileActionBarButtons.map(button => (
+              <button
+                key={button.key}
+                type="button"
+                onClick={button.onClick || undefined}
+                disabled={button.disabled}
+                className={getMobileActionButtonClass(button.variant)}
+              >
+                {button.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

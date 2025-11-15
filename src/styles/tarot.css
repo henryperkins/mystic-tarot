@@ -3,6 +3,34 @@ body {
   overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
+.app-shell {
+  padding-bottom: 1.5rem;
+}
+
+@supports (padding: max(0px)) {
+  .app-shell {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem));
+  }
+}
+
+.mobile-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 0.75rem 1rem 1rem;
+  background: rgba(2, 8, 23, 0.92);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+@supports (padding: max(0px)) {
+  .mobile-action-bar {
+    padding-bottom: max(1rem, calc(0.75rem + env(safe-area-inset-bottom, 0.5rem)));
+  }
+}
+
 /* Light mode overrides */
 .light body {
   background-color: #f8f9fa;

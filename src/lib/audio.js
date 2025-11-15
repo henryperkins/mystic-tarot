@@ -17,6 +17,49 @@ const ttsListeners = new Set();
 let currentNarrationRequestId = 0;
 let activeNarrationId = null;
 let cancelledUpToRequestId = 0;
+let audioUnlocked = false;
+let unlockAttempted = false;
+
+/**
+ * Unlock audio playback by creating and playing a silent audio element.
+ * Must be called from a user interaction event (click, touch, keydown, etc.)
+ * to satisfy browser autoplay policies.
+ */
+export function unlockAudio() {
+  if (audioUnlocked || unlockAttempted) return true;
+  if (typeof Audio === 'undefined' || typeof window === 'undefined') return false;
+
+  unlockAttempted = true;
+
+  try {
+    // Create a silent audio element and play it to unlock the audio context
+    const silentAudio = new Audio('data:audio/mp3;base64,//MkxAAHiAICWABElBeKPL/RANb2w+yiT1g/gTok//lP/W/l3h8QO/OCdCqCW2Cw//MkxAQHkAIWUAhEmAQXWUOFW2dxPu//9mr60ElY5sseQ+xxesmHKtZr7bsqqX2L//MkxAgFwAYiQAhEAC2hq22d3///9FTV6tA36JdgBJoOGgc+7qvqej5Zu7/7uI9l//MkxBQHAAYi8AhEAO193vt9KGOq+6qcT7hhfN5FTInmwk8RkqKImTM55pRQHQSq//MkxBsGkgoIAABHhTACIJLf99nVI///yuW1uBqWfEu7CgNPWGpUadBmZ////4sL//MkxCMHMAH9iABEmAsKioqKigsLCwtVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVV//MkxCkECAUYCAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+    silentAudio.volume = 0.01; // Nearly silent
+    const playPromise = silentAudio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          audioUnlocked = true;
+          console.log('[Audio] Audio context unlocked');
+          silentAudio.pause();
+          silentAudio.currentTime = 0;
+        })
+        .catch(() => {
+          // Still locked, but we tried
+          console.warn('[Audio] Audio unlock failed - user interaction needed');
+        });
+    } else {
+      // Old browser without promise-based play
+      audioUnlocked = true;
+    }
+
+    return audioUnlocked;
+  } catch (err) {
+    console.warn('[Audio] Error unlocking audio:', err);
+    return false;
+  }
+}
 
 export function initAudio() {
   if (typeof Audio === 'undefined') {
@@ -24,6 +67,21 @@ export function initAudio() {
       flipAudio: null,
       ambienceAudio: null
     };
+  }
+
+  // Set up unlock listeners on first init
+  if (typeof window !== 'undefined' && !unlockAttempted) {
+    const unlockEvents = ['click', 'touchstart', 'keydown'];
+    const unlockHandler = () => {
+      unlockAudio();
+      // Remove listeners after first successful unlock attempt
+      unlockEvents.forEach(event => {
+        window.removeEventListener(event, unlockHandler);
+      });
+    };
+    unlockEvents.forEach(event => {
+      window.addEventListener(event, unlockHandler, { once: true, passive: true });
+    });
   }
 
   if (!flipAudio) {
@@ -85,7 +143,7 @@ export function toggleAmbience(on) {
  * @param {boolean} options.enabled - Whether TTS is enabled
  * @param {string} [options.context='default'] - Reading context (card-reveal, full-reading, synthesis, etc.)
  * @param {string} [options.voice='nova'] - Voice selection (nova, shimmer, alloy, echo, fable, onyx)
- * @param {number} [options.speed] - Playback speed (0.25-4.0, default 0.95 for contemplative pace)
+ * @param {number} [options.speed] - Playback speed (0.25-4.0, default 1.1 for engaging pace)
  * @param {boolean} [options.stream=false] - Use streaming mode for progressive audio playback
  */
 export async function speakText({ text, enabled, context = 'default', voice = 'nova', speed, stream = false }) {
@@ -226,6 +284,26 @@ export async function speakText({ text, enabled, context = 'default', voice = 'n
       return;
     }
 
+    // Ensure audio is unlocked before attempting playback
+    if (!audioUnlocked) {
+      // Try to unlock now (works if called from user interaction)
+      unlockAudio();
+
+      // If still not unlocked, show helpful message
+      if (!audioUnlocked) {
+        emitTTSState({
+          status: 'error',
+          provider,
+          source,
+          context: narrationContext,
+          error: 'Audio not unlocked',
+          message: 'Tap anywhere on the page to enable audio, then try again.'
+        });
+        activeNarrationId = null;
+        return;
+      }
+    }
+
     // Play the audio
     const audio = new Audio(audioDataUri);
     ttsAudio = audio;
@@ -242,13 +320,19 @@ export async function speakText({ text, enabled, context = 'default', voice = 'n
       });
     } catch (err) {
       console.error('Error playing TTS audio:', err);
+      const isAutoplayError = err.name === 'NotAllowedError' ||
+                             err.message?.toLowerCase().includes('autoplay') ||
+                             err.message?.toLowerCase().includes('user interaction');
+
       emitTTSState({
         status: 'error',
         provider,
         source,
         context: narrationContext,
         error: err?.message || String(err),
-        message: 'Your browser blocked audio playback. Tap or click the page, then try again.'
+        message: isAutoplayError
+          ? 'Tap anywhere on the page to enable audio, then try again.'
+          : 'Unable to play audio. Please try again.'
       });
       activeNarrationId = null;
     }

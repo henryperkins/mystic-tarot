@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Star, Moon } from 'lucide-react';
 import { MAJOR_ARCANA } from '../data/majorArcana';
 import { MINOR_ARCANA } from '../data/minorArcana';
@@ -103,6 +103,13 @@ export function Card({
   setReflections
 }) {
   const reflectionValue = reflections[index] || '';
+  const revealedContentRef = useRef(null);
+
+  useEffect(() => {
+    if (isRevealed && revealedContentRef.current) {
+      revealedContentRef.current.focus();
+    }
+  }, [isRevealed]);
 
   return (
     <div
@@ -230,7 +237,11 @@ export function Card({
                 </span>
               </div>
 
-              <div className="bg-slate-950/85 rounded p-4 border border-emerald-400/40">
+              <div
+                className="bg-slate-950/85 rounded p-4 border border-emerald-400/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                ref={revealedContentRef}
+                tabIndex={-1}
+              >
                 <p className="text-amber-100/90 text-sm sm:text-base leading-relaxed">
                   {(() => {
                     const allCards = [...MAJOR_ARCANA, ...MINOR_ARCANA];

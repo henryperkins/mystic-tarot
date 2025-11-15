@@ -7,7 +7,7 @@
  * Supports:
  * - Context-specific instruction templates (card-reveal, full-reading, synthesis)
  * - Voice selection (nova, shimmer, alloy, echo, fable, onyx)
- * - Speed control for contemplative pacing (0.25-4.0, default 0.95)
+ * - Speed control for contemplative pacing (0.25-4.0, default 1.1)
  * - Streaming mode for real-time audio playback
  * - Graceful fallback to local waveform
  *
@@ -214,7 +214,7 @@ async function generateWithAzureGptMiniTTS(env, { text, context, voice, speed })
   // Speed validation (0.25 - 4.0 range per API spec)
   const selectedSpeed = speed !== undefined
     ? Math.max(0.25, Math.min(4.0, speed))
-    : 0.95; // Default: slightly slower for contemplative tarot reading pace
+    : 1.1; // Default: slightly faster for engaging tarot reading pace
 
   // Build URL based on format preference
   const url = useV1Format
@@ -299,7 +299,7 @@ async function generateWithAzureGptMiniTTSStream(env, { text, context, voice, sp
   // Speed validation (0.25 - 4.0 range per API spec)
   const selectedSpeed = speed !== undefined
     ? Math.max(0.25, Math.min(4.0, speed))
-    : 0.95;
+    : 1.1; // Default: slightly faster for engaging tarot reading pace
 
   // Build URL based on format preference
   const url = useV1Format
