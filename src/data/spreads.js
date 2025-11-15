@@ -58,11 +58,17 @@ export const SPREADS = {
   // Relationship: focused dynamic between querent and other
   relationship: {
     name: 'Relationship Snapshot',
-    positions: ['You / your energy', 'Them / their energy', 'The connection / shared lesson'],
-    count: 3,
+    positions: [
+      'You / your energy',
+      'Them / their energy',
+      'The connection / shared lesson',
+      'Dynamics / guidance',
+      'Outcome / what this can become'
+    ],
+    count: 5,
     description:
-      'Highlights how each party is showing up and what the bond is asking from you right now.',
-    mobileDescription: 'You, them, and the shared lesson in three cards.'
+      'Maps each person’s energy, the shared lesson, how the current dynamics want to move, and what this bond can become.',
+    mobileDescription: 'You, them, the connection, plus guidance + outcome checkpoints.'
   },
 
   // Celtic Cross: classic full spread for complex questions

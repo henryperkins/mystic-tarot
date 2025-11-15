@@ -15,11 +15,16 @@ describe('validatePayload spread count enforcement', () => {
   it('rejects incorrect card counts for known spreads', () => {
     const payload = {
       spreadInfo: { name: 'Relationship Snapshot' },
-      cardsInfo: [card('You / your energy'), card('Them / their energy'), card('The connection / shared lesson'), card('Extra position')]
+      cardsInfo: [
+        card('You / your energy'),
+        card('Them / their energy'),
+        card('The connection / shared lesson'),
+        card('Dynamics / guidance')
+      ]
     };
 
     const err = validatePayload(payload);
-    assert.match(err, /expects 3 cards/);
+    assert.match(err, /expects 5 cards/);
   });
 
   it('rejects insufficient cards for larger spreads', () => {
@@ -39,7 +44,13 @@ describe('validatePayload spread count enforcement', () => {
   it('accepts correct card counts for known spreads', () => {
     const payload = {
       spreadInfo: { name: 'Relationship Snapshot' },
-      cardsInfo: [card('You / your energy'), card('Them / their energy'), card('The connection / shared lesson')]
+      cardsInfo: [
+        card('You / your energy'),
+        card('Them / their energy'),
+        card('The connection / shared lesson'),
+        card('Dynamics / guidance'),
+        card('Outcome / what this can become')
+      ]
     };
 
     const err = validatePayload(payload);

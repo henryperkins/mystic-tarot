@@ -162,12 +162,14 @@ Defined in `src/data/spreads.js` as `SPREADS`:
   - Use for: structured option comparison; must emphasize agency.
 
 - `relationship` — Relationship Snapshot
-  - count: 3
+  - count: 5
   - Positions:
     - You / your energy
     - Them / their energy
     - The connection / shared lesson
-  - Use for: dynamic overview; avoid deterministic outcomes.
+    - Dynamics / guidance
+    - Outcome / what this can become
+  - Use for: dynamic overview spanning each person, the bond, and near-term trajectory; avoid deterministic outcomes.
 
 - `celtic` — Celtic Cross (Classic 10-Card)
   - count: 10

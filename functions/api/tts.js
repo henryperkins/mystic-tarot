@@ -207,9 +207,10 @@ async function generateWithAzureGptMiniTTS(env, { text, context, voice, speed })
   // Select instruction template based on context
   const instructions = INSTRUCTION_TEMPLATES[context] || INSTRUCTION_TEMPLATES.default;
 
-  // Voice validation (Azure OpenAI TTS voices)
-  const validVoices = ['nova', 'shimmer', 'alloy', 'echo', 'fable', 'onyx'];
-  const selectedVoice = validVoices.includes(voice) ? voice : 'nova';
+  // Voice validation (gpt-4o-mini-tts voices - 11 available)
+  // Base voices: alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse
+  const validVoices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer', 'verse'];
+  const selectedVoice = validVoices.includes(voice) ? voice : 'verse';
 
   // Speed validation (0.25 - 4.0 range per API spec)
   const selectedSpeed = speed !== undefined
@@ -292,9 +293,10 @@ async function generateWithAzureGptMiniTTSStream(env, { text, context, voice, sp
   // Select instruction template based on context
   const instructions = INSTRUCTION_TEMPLATES[context] || INSTRUCTION_TEMPLATES.default;
 
-  // Voice validation
-  const validVoices = ['nova', 'shimmer', 'alloy', 'echo', 'fable', 'onyx'];
-  const selectedVoice = validVoices.includes(voice) ? voice : 'nova';
+  // Voice validation (gpt-4o-mini-tts voices - 11 available)
+  // Base voices: alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse
+  const validVoices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer', 'verse'];
+  const selectedVoice = validVoices.includes(voice) ? voice : 'verse';
 
   // Speed validation (0.25 - 4.0 range per API spec)
   const selectedSpeed = speed !== undefined

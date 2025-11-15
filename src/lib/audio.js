@@ -142,11 +142,11 @@ export function toggleAmbience(on) {
  * @param {string} options.text - Text to speak (can be Markdown)
  * @param {boolean} options.enabled - Whether TTS is enabled
  * @param {string} [options.context='default'] - Reading context (card-reveal, full-reading, synthesis, etc.)
- * @param {string} [options.voice='nova'] - Voice selection (nova, shimmer, alloy, echo, fable, onyx)
+ * @param {string} [options.voice='verse'] - Voice selection (alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse)
  * @param {number} [options.speed] - Playback speed (0.25-4.0, default 1.1 for engaging pace)
  * @param {boolean} [options.stream=false] - Use streaming mode for progressive audio playback
  */
-export async function speakText({ text, enabled, context = 'default', voice = 'nova', speed, stream = false }) {
+export async function speakText({ text, enabled, context = 'default', voice = 'verse', speed, stream = false }) {
   if (!enabled) {
     emitTTSState({ status: 'idle', reason: 'disabled', message: null });
     return;
