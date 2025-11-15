@@ -1850,6 +1850,17 @@ function buildUserPrompt(spreadKey, cardsInfo, userQuestion, reflectionsText, th
   if (themes.suitFocus) thematicLines.push(`- ${themes.suitFocus}`);
   if (themes.archetypeDescription) thematicLines.push(`- ${themes.archetypeDescription}`);
   if (themes.elementalBalance) thematicLines.push(`- ${themes.elementalBalance}`);
+  if (themes.timingProfile) {
+    const timingDescriptions = {
+      'near-term-tilt': 'Timing: This reading leans toward near-term shifts if you engage actively with the guidance.',
+      'longer-arc-tilt': 'Timing: This pattern unfolds across a longer structural arc requiring patience and sustained attention.',
+      'developing-arc': 'Timing: Expect this to emerge as a meaningful chapter rather than a single moment.'
+    };
+    const timingText = timingDescriptions[themes.timingProfile];
+    if (timingText) {
+      thematicLines.push(`- ${timingText}`);
+    }
+  }
   thematicLines.push(`- Reversal framework: ${themes.reversalDescription.name}`);
   prompt += `**Thematic Context**:\n${thematicLines.join('\n')}\n\n`;
 
@@ -1877,11 +1888,19 @@ function buildUserPrompt(spreadKey, cardsInfo, userQuestion, reflectionsText, th
 
   // Instructions
   prompt += `\nProvide a cohesive, flowing Markdown-formatted narrative that:
-- Starts each major beat with a ### heading summarizing the focus
+- Starts each major beat with a Title Case ### heading that is noun-focused (avoid "&" or "↔" in headings)
 - References specific cards and positions (bold card names the first time they appear)
+- Uses full sentences; if you need callouts, format them as bolded labels (e.g., **What:**) instead of shorthand like "What:"
+- Vary transitional phrases between paragraphs (Looking ahead, As a result, Even so, etc.) to keep the flow natural and avoid repeating the same opener in consecutive paragraphs
+- Do not start consecutive paragraphs with "Because" or "Therefore"; rotate to alternatives (Since, Even so, Still, Looking ahead) or omit the transition when the causal link is already clear
+- Break up sentences longer than ~30 words; use two shorter sentences or em dashes/semicolons for clarity
+- Ensures every paragraph ends with punctuation and closes any parenthetical references
+- Keep paragraphs to 2–4 sentences so the narrative stays readable
+- Describe reversed or blocked energy in fresh language (e.g., "In its inverted state...", "Under this blocked lens...") rather than repeating the same phrasing each time
 - Integrates the thematic and elemental insights above
-- Includes a short bullet list of actionable micro-steps before the final paragraph
+- Includes a short bullet list of actionable micro-steps before the final paragraph, leading each bullet with a bolded action verb for parallelism (e.g., **Name**, **Initiate**)
 - Reminds the querent of their agency and free will
+- Keeps the closing encouragement to one or two concise paragraphs instead of a single long block
 Apply Minor Arcana interpretation rules to all non-Major cards.`;
 
   prompt += `\n\nRemember ethical constraints: emphasize agency, avoid guarantees, no medical/legal directives.`;
@@ -1942,6 +1961,18 @@ function buildCelticCrossPromptCards(cardsInfo, analysis, themes, context) {
 
   cards += `**KEY CROSS-CHECKS**:\n`;
   cards += buildPromptCrossChecks(analysis.crossChecks, themes);
+
+  cards += `\n\n**POSITION INTERPRETATION NOTES**:\n`;
+  cards += `- Present (1): Anchor for all axes; core atmosphere of this moment\n`;
+  cards += `- Challenge (2): Obstacle to integrate, not to defeat\n`;
+  cards += `- Past (3): Foundation influencing current state\n`;
+  cards += `- Near Future (4): Next chapter; cross-check with Outcome\n`;
+  cards += `- Conscious (5): Stated goals; verify alignment with Outcome\n`;
+  cards += `- Subconscious (6): Hidden drivers; mirror with Hopes/Fears\n`;
+  cards += `- Advice (7): Active guidance; assess impact on Outcome\n`;
+  cards += `- External (8): Environmental context, not command\n`;
+  cards += `- Hopes/Fears (9): Mixed desires/anxieties\n`;
+  cards += `- Outcome (10): Trajectory if unchanged, never deterministic\n`;
 
   return cards;
 }
@@ -2004,6 +2035,17 @@ function buildCardWithImagery(cardInfo, position, options, prefix = '') {
     if (hook) {
       text += `*Imagery: ${hook.visual}*\n`;
       text += `*Sensory: ${hook.sensory}*\n`;
+    }
+  } else if (cardInfo.suit && cardInfo.rank) {
+    const suitElements = {
+      Wands: 'Fire',
+      Cups: 'Water',
+      Swords: 'Air',
+      Pentacles: 'Earth'
+    };
+    const element = suitElements[cardInfo.suit];
+    if (element) {
+      text += `*Minor Arcana: ${cardInfo.suit} (${element}) — ${cardInfo.rank}*\n`;
     }
   }
 

@@ -55,7 +55,7 @@ function getSpreadKey(spreadName) {
 
 function requiresHighReasoningEffort(modelName = '') {
   const normalized = modelName.toLowerCase();
-  return normalized.includes('gpt-5-pro') || normalized.includes('gpt-5.1-pro');
+  return normalized.includes('gpt-5-pro') || normalized.includes('gpt-5.1');
 }
 
 export const onRequestGet = async ({ env }) => {
@@ -388,9 +388,9 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   console.log(`[${requestId}] Using deployment: ${deploymentName}, api-version: ${apiVersion}`);
 
   // Dynamic reasoning effort based on model capabilities
-  // - gpt-5-pro: ONLY supports 'high' reasoning effort
+  // - gpt-5-pro, gpt-5.1: Use 'high' reasoning effort for best results
   // - gpt-5-codex: supports low/medium/high (not minimal)
-  // - gpt-5, gpt-5.1: support low/medium/high
+  // - gpt-5: supports low/medium/high
   // - Other GPT-5 family models: support low/medium/high
   let reasoningEffort = 'medium'; // Default for most models
   if (deploymentName && requiresHighReasoningEffort(deploymentName)) {
