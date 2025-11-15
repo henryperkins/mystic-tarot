@@ -81,6 +81,18 @@ export function getCardElement(cardName, cardNumber) {
  * - Fire & Water create tension (steam/conflict)
  * - Air & Earth create tension (scattered vs grounded)
  * - Same element amplifies
+ *
+ * @param {Object} card1 - First card object with card name and number
+ * @param {Object} card2 - Second card object with card name and number
+ * @returns {Object} Elemental relationship analysis with:
+ *   - relationship: 'amplified' | 'supportive' | 'tension' | 'neutral'
+ *   - element/elements: The element(s) involved
+ *   - description: Prose description of the elemental dynamic
+ *
+ * NOTE: For sensory imagery descriptions of elemental relationships,
+ * see getElementalImagery() in imageryHooks.js, which provides
+ * metaphorical language (e.g., "Steam rises where fire meets water")
+ * for use in narrative prompts and reading generation.
  */
 export function analyzeElementalDignity(card1, card2) {
   if (!card1 || !card2) {
@@ -274,27 +286,52 @@ export const REVERSAL_FRAMEWORKS = {
   none: {
     name: 'All Upright',
     description: 'All cards appear upright, showing energies flowing freely and directly.',
-    guidance: 'Read each card\'s traditional upright meaning in the context of its position.'
+    guidance: 'Read each card\'s traditional upright meaning in the context of its position.',
+    examples: {}
   },
   blocked: {
     name: 'Blocked Energy',
     description: 'Reversed cards show energies present but meeting resistance, obstacles, or internal barriers.',
-    guidance: 'Interpret reversals as the same energy encountering blockage that must be addressed before progress.'
+    guidance: 'Interpret reversals as the same energy encountering blockage that must be addressed before progress.',
+    examples: {
+      'The Magician': 'Skills and resources are present but meeting external obstacles or internal resistance preventing manifestation',
+      'The Chariot': 'Drive and determination exist but are stalled by conflicting priorities or external forces',
+      'Three of Pentacles': 'Collaborative work blocked by miscommunication, lack of recognition, or organizational barriers',
+      'Eight of Wands': 'Swift momentum halted by delays, bureaucracy, or logistical obstacles requiring patience'
+    }
   },
   delayed: {
     name: 'Delayed Timing',
     description: 'Reversed cards indicate timing is not yet ripe; patience and preparation are needed.',
-    guidance: 'Read reversals as energies that will manifest later, after certain conditions are met.'
+    guidance: 'Read reversals as energies that will manifest later, after certain conditions are met.',
+    examples: {
+      'The Star': 'Hope and renewal are coming, but the full restoration requires more time and gentle tending',
+      'The Sun': 'Success and clarity will arrive after necessary groundwork is complete',
+      'Ace of Wands': 'New creative spark is forming but needs incubation before launching externally',
+      'Two of Cups': 'Partnership or connection is developing beneath the surface, not yet ready for full expression'
+    }
   },
   internalized: {
     name: 'Internal Processing',
     description: 'Reversed cards point to inner work, private processing, and energies working beneath the surface.',
-    guidance: 'Interpret reversals as the same themes playing out in the inner world rather than external events.'
+    guidance: 'Interpret reversals as the same themes playing out in the inner world rather than external events.',
+    examples: {
+      'The Hermit': 'Solitude and reflection happening in private contemplation rather than visible retreat',
+      'Justice': 'Seeking inner fairness and self-accountability before external resolution',
+      'Five of Cups': 'Grief and loss being processed quietly within, not yet shared or externalized',
+      'Knight of Swords': 'Mental clarity and decisiveness operating in internal dialogue and planning'
+    }
   },
   contextual: {
     name: 'Context-Dependent',
     description: 'Reversed cards are interpreted individually based on their unique position and relationships.',
-    guidance: 'Read each reversal according to what makes most sense for that specific card and position.'
+    guidance: 'Read each reversal according to what makes most sense for that specific card and position.',
+    examples: {
+      'The Tower': 'In Challenge position: Avoiding necessary change; in Advice: Transform gradually vs suddenly',
+      'The Devil': 'In Subconscious: Releasing limiting beliefs; in External: Others\' attachments affecting you',
+      'Seven of Swords': 'In Past: Previous deception being revealed; in Advice: Straightforward honesty needed now',
+      'Ten of Pentacles': 'In Outcome: Legacy work still developing; in Hopes/Fears: Ambivalence about stability vs freedom'
+    }
   }
 };
 
@@ -457,19 +494,28 @@ export function analyzeCelticCross(cardsInfo) {
       {
         type: 'cross-check',
         key: 'goalVsOutcome',
-        summary: crossChecks.goalVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.goalVsOutcome),
+        alignmentType: crossChecks.goalVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.goalVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.goalVsOutcome.orientationAlignment,
         cards: [crossChecks.goalVsOutcome.position1, crossChecks.goalVsOutcome.position2]
       },
       {
         type: 'cross-check',
         key: 'adviceVsOutcome',
-        summary: crossChecks.adviceVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.adviceVsOutcome),
+        alignmentType: crossChecks.adviceVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.adviceVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.adviceVsOutcome.orientationAlignment,
         cards: [crossChecks.adviceVsOutcome.position1, crossChecks.adviceVsOutcome.position2]
       },
       {
         type: 'cross-check',
         key: 'subconsciousVsHopesFears',
-        summary: crossChecks.subconsciousVsHopesFears.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.subconsciousVsHopesFears),
+        alignmentType: crossChecks.subconsciousVsHopesFears.alignmentType,
+        elementalRelationship: crossChecks.subconsciousVsHopesFears.elementalRelationship,
+        orientationAlignment: crossChecks.subconsciousVsHopesFears.orientationAlignment,
         cards: [
           crossChecks.subconsciousVsHopesFears.position1,
           crossChecks.subconsciousVsHopesFears.position2
@@ -478,7 +524,10 @@ export function analyzeCelticCross(cardsInfo) {
       {
         type: 'cross-check',
         key: 'nearFutureVsOutcome',
-        summary: crossChecks.nearFutureVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.nearFutureVsOutcome),
+        alignmentType: crossChecks.nearFutureVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.nearFutureVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.nearFutureVsOutcome.orientationAlignment,
         cards: [
           crossChecks.nearFutureVsOutcome.position1,
           crossChecks.nearFutureVsOutcome.position2
@@ -699,30 +748,67 @@ function analyzeStaff(self, external, hopesFears, outcome) {
 }
 
 /**
+ * Determine alignment type based on elemental relationship and orientation
+ *
+ * @param {Object} elemental - Elemental relationship object from analyzeElementalDignity
+ * @param {boolean} orientationMatch - Whether both cards share the same orientation
+ * @returns {string} Alignment type: 'unified' | 'harmonious' | 'evolving-support' |
+ *                   'parallel-tension' | 'dynamic-shift' | 'complex'
+ */
+function determineAlignmentType(elemental, orientationMatch) {
+  if (elemental.relationship === 'amplified') return 'unified';
+  if (elemental.relationship === 'supportive' && orientationMatch) return 'harmonious';
+  if (elemental.relationship === 'supportive' && !orientationMatch) return 'evolving-support';
+  if (elemental.relationship === 'tension' && orientationMatch) return 'parallel-tension';
+  if (elemental.relationship === 'tension' && !orientationMatch) return 'dynamic-shift';
+  return 'complex';
+}
+
+/**
+ * Generate summary prose for cross-check relationships
+ * Used to populate the summary field needed by UI highlights
+ */
+function buildCrossCheckSummary(crossCheck) {
+  const { position1, position2, elementalRelationship, alignmentType } = crossCheck;
+
+  let summary = `${position1.name} (${position1.card} ${position1.orientation}) compared to ${position2.name} (${position2.card} ${position2.orientation}): `;
+
+  // Add elemental description if available
+  if (elementalRelationship?.description) {
+    summary += elementalRelationship.description + ' ';
+  }
+
+  // Add alignment-based insight
+  const alignmentInsights = {
+    'unified': 'Both positions share the same elemental theme, creating unified energy.',
+    'harmonious': 'These positions support each other harmoniously.',
+    'evolving-support': 'Supportive flow suggests evolution between these positions.',
+    'parallel-tension': 'Both hold tension in the same direction.',
+    'dynamic-shift': 'Different orientations signal a transformative shift.',
+    'complex': 'These positions show nuanced interplay.'
+  };
+
+  summary += alignmentInsights[alignmentType] || 'These positions relate in subtle ways.';
+
+  return summary;
+}
+
+/**
  * Compare two position cards for cross-checks
+ *
+ * Returns structured data only - prose generation handled by narrative builder.
+ * This eliminates redundant synthesis text and centralizes narrative logic.
  */
 function comparePositions(card1, card2, pos1Name, pos2Name) {
   const elemental = analyzeElementalDignity(card1, card2);
   const orientationMatch = card1.orientation === card2.orientation;
-
-  let synthesis = `Comparing ${pos1Name} (${card1.card} ${card1.orientation}) with ${pos2Name} (${card2.card} ${card2.orientation}): `;
-
-  if (elemental.description) {
-    synthesis += elemental.description + '. ';
-  }
-
-  if (orientationMatch) {
-    synthesis += 'Both share the same orientation, suggesting thematic continuity.';
-  } else {
-    synthesis += 'Different orientations suggest a shift or evolution between these positions.';
-  }
 
   return {
     position1: { name: pos1Name, card: card1.card, orientation: card1.orientation, meaning: card1.meaning },
     position2: { name: pos2Name, card: card2.card, orientation: card2.orientation, meaning: card2.meaning },
     elementalRelationship: elemental,
     orientationAlignment: orientationMatch,
-    synthesis
+    alignmentType: determineAlignmentType(elemental, orientationMatch)
   };
 }
 
@@ -889,16 +975,25 @@ export function analyzeRelationship(cardsInfo) {
 
   const relationships = [];
   if (youVsThem) {
+    // Generate summary from structured data
+    let summary = `${youLabel} (${you.card} ${you.orientation}) and ${themLabel} (${them.card} ${them.orientation}): `;
+    if (youVsThem.elementalRelationship?.description) {
+      summary += youVsThem.elementalRelationship.description;
+    } else {
+      summary += `The dynamic between you ${youVsThem.alignmentType === 'unified' ? 'resonates with shared energy' : youVsThem.alignmentType === 'harmonious' ? 'flows harmoniously' : 'holds creative tension'}.`;
+    }
+
     relationships.push({
       type: 'axis',
       axis: 'You ↔ Them',
-      summary: youVsThem.synthesis,
+      summary,
       positions: [0, 1],
       cards: [
         { card: you.card, orientation: you.orientation },
         { card: them.card, orientation: them.orientation }
       ],
-      elementalRelationship: youVsThem.elementalRelationship
+      elementalRelationship: youVsThem.elementalRelationship,
+      alignmentType: youVsThem.alignmentType
     });
   }
 
@@ -970,44 +1065,71 @@ export function analyzeDecision(cardsInfo) {
   const relationships = [];
 
   if (heartVsA) {
+    // Generate summary from structured data
+    let summary = `${heartLabel} (${heart.card} ${heart.orientation}) and ${pathALabel} (${pathA.card} ${pathA.orientation}): `;
+    if (heartVsA.elementalRelationship?.description) {
+      summary += heartVsA.elementalRelationship.description;
+    } else {
+      summary += `This path ${heartVsA.alignmentType === 'unified' ? 'strongly aligns with' : heartVsA.alignmentType === 'harmonious' ? 'supports' : 'creates complexity with'} your core values.`;
+    }
+
     relationships.push({
       type: 'axis',
       axis: 'Heart ↔ Path A',
-      summary: heartVsA.synthesis,
+      summary,
       positions: [0, 1],
       cards: [
         { card: heart.card, orientation: heart.orientation },
         { card: pathA.card, orientation: pathA.orientation }
       ],
-      elementalRelationship: heartVsA.elementalRelationship
+      elementalRelationship: heartVsA.elementalRelationship,
+      alignmentType: heartVsA.alignmentType
     });
   }
 
   if (heartVsB) {
+    // Generate summary from structured data
+    let summary = `${heartLabel} (${heart.card} ${heart.orientation}) and ${pathBLabel} (${pathB.card} ${pathB.orientation}): `;
+    if (heartVsB.elementalRelationship?.description) {
+      summary += heartVsB.elementalRelationship.description;
+    } else {
+      summary += `This path ${heartVsB.alignmentType === 'unified' ? 'strongly aligns with' : heartVsB.alignmentType === 'harmonious' ? 'supports' : 'creates complexity with'} your core values.`;
+    }
+
     relationships.push({
       type: 'axis',
       axis: 'Heart ↔ Path B',
-      summary: heartVsB.synthesis,
+      summary,
       positions: [0, 2],
       cards: [
         { card: heart.card, orientation: heart.orientation },
         { card: pathB.card, orientation: pathB.orientation }
       ],
-      elementalRelationship: heartVsB.elementalRelationship
+      elementalRelationship: heartVsB.elementalRelationship,
+      alignmentType: heartVsB.alignmentType
     });
   }
 
   if (pathAVsB) {
+    // Generate summary from structured data
+    let summary = `${pathALabel} (${pathA.card} ${pathA.orientation}) and ${pathBLabel} (${pathB.card} ${pathB.orientation}): `;
+    if (pathAVsB.elementalRelationship?.description) {
+      summary += pathAVsB.elementalRelationship.description;
+    } else {
+      summary += `These paths ${pathAVsB.alignmentType === 'unified' ? 'share similar energies' : pathAVsB.alignmentType === 'tension' || pathAVsB.alignmentType === 'parallel-tension' ? 'contrast with each other' : 'offer different approaches'}.`;
+    }
+
     relationships.push({
       type: 'axis',
       axis: 'Path A ↔ Path B',
-      summary: pathAVsB.synthesis,
+      summary,
       positions: [1, 2],
       cards: [
         { card: pathA.card, orientation: pathA.orientation },
         { card: pathB.card, orientation: pathB.orientation }
       ],
-      elementalRelationship: pathAVsB.elementalRelationship
+      elementalRelationship: pathAVsB.elementalRelationship,
+      alignmentType: pathAVsB.alignmentType
     });
   }
 

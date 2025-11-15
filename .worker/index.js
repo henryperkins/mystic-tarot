@@ -16,66 +16,46 @@ __export(timingMeta_exports, {
   getTimingHintForCard: () => getTimingHintForCard
 });
 function getSuitSpeedWeight(suit) {
-  if (FAST_SUITS.has(suit))
-    return 1;
-  if (MID_SUITS.has(suit))
-    return 0;
-  if (SLOW_SUITS.has(suit))
-    return -1;
+  if (FAST_SUITS.has(suit)) return 1;
+  if (MID_SUITS.has(suit)) return 0;
+  if (SLOW_SUITS.has(suit)) return -1;
   return 0;
 }
 function getRankTempoWeight(rankValue) {
-  if (typeof rankValue !== "number")
-    return 0;
-  if (rankValue >= 1 && rankValue <= 4)
-    return 1;
-  if (rankValue >= 5 && rankValue <= 9)
-    return 0;
-  if (rankValue >= 10)
-    return -1;
+  if (typeof rankValue !== "number") return 0;
+  if (rankValue >= 1 && rankValue <= 4) return 1;
+  if (rankValue >= 5 && rankValue <= 9) return 0;
+  if (rankValue >= 10) return -1;
   return 0;
 }
 function getMajorTimingWeight(number) {
-  if (typeof number !== "number")
-    return 0;
-  if (number >= 0 && number <= 6)
-    return 0;
-  if (number >= 7 && number <= 14)
-    return -0.5;
-  if (number >= 15)
-    return -1;
+  if (typeof number !== "number") return 0;
+  if (number >= 0 && number <= 6) return 0;
+  if (number >= 7 && number <= 14) return -0.5;
+  if (number >= 15) return -1;
   return 0;
 }
 function getTimingHintForCard(card = {}) {
-  if (!card)
-    return null;
+  if (!card) return null;
   if (typeof card.number === "number" && card.number >= 0 && card.number <= 21) {
     const w = getMajorTimingWeight(card.number);
-    if (w <= -1)
-      return "longer-arc";
-    if (w < 0)
-      return "developing";
+    if (w <= -1) return "longer-arc";
+    if (w < 0) return "developing";
     return "developing";
   }
   const suit = card.suit || inferSuitFromName(card.card);
   const suitWeight = getSuitSpeedWeight(suit);
   const rankWeight = getRankTempoWeight(card.rankValue);
   const total = suitWeight + rankWeight;
-  if (total >= 2)
-    return "sooner";
-  if (total >= 1)
-    return "sooner";
-  if (total <= -2)
-    return "longer-arc";
-  if (total <= -1)
-    return "longer-arc";
-  if (suit || typeof card.rankValue === "number")
-    return "developing";
+  if (total >= 2) return "sooner";
+  if (total >= 1) return "sooner";
+  if (total <= -2) return "longer-arc";
+  if (total <= -1) return "longer-arc";
+  if (suit || typeof card.rankValue === "number") return "developing";
   return null;
 }
 function getSpreadTimingProfile({ cardsInfo = [], themes = {} } = {}) {
-  if (!Array.isArray(cardsInfo) || cardsInfo.length === 0)
-    return null;
+  if (!Array.isArray(cardsInfo) || cardsInfo.length === 0) return null;
   const namedFuturePositions = /* @__PURE__ */ new Set([
     "Future \u2014 trajectory if nothing shifts",
     "Near Future \u2014 what lies before (Card 4)",
@@ -93,16 +73,12 @@ function getSpreadTimingProfile({ cardsInfo = [], themes = {} } = {}) {
   let longer = 0;
   for (const card of sample) {
     const hint = getTimingHintForCard(card);
-    if (hint === "sooner")
-      sooner++;
-    else if (hint === "developing")
-      developing++;
-    else if (hint === "longer-arc")
-      longer++;
+    if (hint === "sooner") sooner++;
+    else if (hint === "developing") developing++;
+    else if (hint === "longer-arc") longer++;
   }
   const total = sooner + developing + longer;
-  if (!total)
-    return null;
+  if (!total) return null;
   if (sooner / total >= 0.55 && sooner >= 2) {
     return "near-term-tilt";
   }
@@ -112,22 +88,17 @@ function getSpreadTimingProfile({ cardsInfo = [], themes = {} } = {}) {
   return "developing-arc";
 }
 function inferSuitFromName(name) {
-  if (typeof name !== "string")
-    return null;
-  if (name.includes("Wands"))
-    return "Wands";
-  if (name.includes("Cups"))
-    return "Cups";
-  if (name.includes("Swords"))
-    return "Swords";
-  if (name.includes("Pentacles"))
-    return "Pentacles";
+  if (typeof name !== "string") return null;
+  if (name.includes("Wands")) return "Wands";
+  if (name.includes("Cups")) return "Cups";
+  if (name.includes("Swords")) return "Swords";
+  if (name.includes("Pentacles")) return "Pentacles";
   return null;
 }
 var FAST_SUITS, SLOW_SUITS, MID_SUITS;
 var init_timingMeta = __esm({
   "lib/timingMeta.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     FAST_SUITS = /* @__PURE__ */ new Set(["Wands", "Swords"]);
     SLOW_SUITS = /* @__PURE__ */ new Set(["Pentacles"]);
     MID_SUITS = /* @__PURE__ */ new Set(["Cups"]);
@@ -276,14 +247,10 @@ async function analyzeSpreadThemes(cardsInfo, options = {}) {
   return themes;
 }
 function selectReversalFramework(ratio, cardsInfo) {
-  if (ratio === 0)
-    return "none";
-  if (ratio >= 0.6)
-    return "blocked";
-  if (ratio >= 0.4)
-    return "internalized";
-  if (ratio >= 0.2)
-    return "delayed";
+  if (ratio === 0) return "none";
+  if (ratio >= 0.6) return "blocked";
+  if (ratio >= 0.4) return "internalized";
+  if (ratio >= 0.2) return "delayed";
   return "contextual";
 }
 function getReversalFrameworkDescription(framework) {
@@ -292,8 +259,7 @@ function getReversalFrameworkDescription(framework) {
 function getSuitFocusDescription({ top, second }) {
   const [topSuit, topCount] = top || [null, 0];
   const [secondSuit, secondCount] = second || [null, 0];
-  if (!topSuit || topCount < 2)
-    return null;
+  if (!topSuit || topCount < 2) return null;
   if (topCount === secondCount && topCount > 1 && secondSuit) {
     return `Balanced focus between ${topSuit} and ${secondSuit}, each surfacing ${topCount} times.`;
   }
@@ -313,10 +279,8 @@ function getMajorAwareElementalBalanceDescription({ elementCounts, totalCards, m
 }
 function getElementalBalanceDescription(elementCounts, total) {
   const active = Object.entries(elementCounts).filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]);
-  if (active.length === 0)
-    return "Balanced elemental presence.";
-  if (active.length === 1)
-    return `Strong ${active[0][0]} emphasis dominates this reading.`;
+  if (active.length === 0) return "Balanced elemental presence.";
+  if (active.length === 1) return `Strong ${active[0][0]} emphasis dominates this reading.`;
   const [dominant] = active;
   const ratio = dominant[1] / total;
   if (ratio >= 0.5) {
@@ -337,12 +301,9 @@ function getArchetypeDescription(ratio) {
   return "Primarily Minor Arcana, focusing on practical, day-to-day dynamics and immediate concerns.";
 }
 function getLifecycleStage(avgNumber) {
-  if (avgNumber === null)
-    return null;
-  if (avgNumber <= 7)
-    return "new cycles, initiative, fresh beginnings, and reclaiming agency";
-  if (avgNumber <= 14)
-    return "integration, balance, working through challenges, and staying centered amidst change";
+  if (avgNumber === null) return null;
+  if (avgNumber <= 7) return "new cycles, initiative, fresh beginnings, and reclaiming agency";
+  if (avgNumber <= 14) return "integration, balance, working through challenges, and staying centered amidst change";
   return "culmination, mastery, completion, and preparing to release what is finished";
 }
 function analyzeCelticCross(cardsInfo) {
@@ -418,19 +379,28 @@ function analyzeCelticCross(cardsInfo) {
       {
         type: "cross-check",
         key: "goalVsOutcome",
-        summary: crossChecks.goalVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.goalVsOutcome),
+        alignmentType: crossChecks.goalVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.goalVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.goalVsOutcome.orientationAlignment,
         cards: [crossChecks.goalVsOutcome.position1, crossChecks.goalVsOutcome.position2]
       },
       {
         type: "cross-check",
         key: "adviceVsOutcome",
-        summary: crossChecks.adviceVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.adviceVsOutcome),
+        alignmentType: crossChecks.adviceVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.adviceVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.adviceVsOutcome.orientationAlignment,
         cards: [crossChecks.adviceVsOutcome.position1, crossChecks.adviceVsOutcome.position2]
       },
       {
         type: "cross-check",
         key: "subconsciousVsHopesFears",
-        summary: crossChecks.subconsciousVsHopesFears.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.subconsciousVsHopesFears),
+        alignmentType: crossChecks.subconsciousVsHopesFears.alignmentType,
+        elementalRelationship: crossChecks.subconsciousVsHopesFears.elementalRelationship,
+        orientationAlignment: crossChecks.subconsciousVsHopesFears.orientationAlignment,
         cards: [
           crossChecks.subconsciousVsHopesFears.position1,
           crossChecks.subconsciousVsHopesFears.position2
@@ -439,7 +409,10 @@ function analyzeCelticCross(cardsInfo) {
       {
         type: "cross-check",
         key: "nearFutureVsOutcome",
-        summary: crossChecks.nearFutureVsOutcome.synthesis,
+        summary: buildCrossCheckSummary(crossChecks.nearFutureVsOutcome),
+        alignmentType: crossChecks.nearFutureVsOutcome.alignmentType,
+        elementalRelationship: crossChecks.nearFutureVsOutcome.elementalRelationship,
+        orientationAlignment: crossChecks.nearFutureVsOutcome.orientationAlignment,
         cards: [
           crossChecks.nearFutureVsOutcome.position1,
           crossChecks.nearFutureVsOutcome.position2
@@ -617,24 +590,40 @@ function analyzeStaff(self, external, hopesFears, outcome) {
     adviceImpact
   };
 }
+function determineAlignmentType(elemental, orientationMatch) {
+  if (elemental.relationship === "amplified") return "unified";
+  if (elemental.relationship === "supportive" && orientationMatch) return "harmonious";
+  if (elemental.relationship === "supportive" && !orientationMatch) return "evolving-support";
+  if (elemental.relationship === "tension" && orientationMatch) return "parallel-tension";
+  if (elemental.relationship === "tension" && !orientationMatch) return "dynamic-shift";
+  return "complex";
+}
+function buildCrossCheckSummary(crossCheck) {
+  const { position1, position2, elementalRelationship, alignmentType } = crossCheck;
+  let summary = `${position1.name} (${position1.card} ${position1.orientation}) compared to ${position2.name} (${position2.card} ${position2.orientation}): `;
+  if (elementalRelationship?.description) {
+    summary += elementalRelationship.description + " ";
+  }
+  const alignmentInsights = {
+    "unified": "Both positions share the same elemental theme, creating unified energy.",
+    "harmonious": "These positions support each other harmoniously.",
+    "evolving-support": "Supportive flow suggests evolution between these positions.",
+    "parallel-tension": "Both hold tension in the same direction.",
+    "dynamic-shift": "Different orientations signal a transformative shift.",
+    "complex": "These positions show nuanced interplay."
+  };
+  summary += alignmentInsights[alignmentType] || "These positions relate in subtle ways.";
+  return summary;
+}
 function comparePositions(card1, card2, pos1Name, pos2Name) {
   const elemental = analyzeElementalDignity(card1, card2);
   const orientationMatch = card1.orientation === card2.orientation;
-  let synthesis = `Comparing ${pos1Name} (${card1.card} ${card1.orientation}) with ${pos2Name} (${card2.card} ${card2.orientation}): `;
-  if (elemental.description) {
-    synthesis += elemental.description + ". ";
-  }
-  if (orientationMatch) {
-    synthesis += "Both share the same orientation, suggesting thematic continuity.";
-  } else {
-    synthesis += "Different orientations suggest a shift or evolution between these positions.";
-  }
   return {
     position1: { name: pos1Name, card: card1.card, orientation: card1.orientation, meaning: card1.meaning },
     position2: { name: pos2Name, card: card2.card, orientation: card2.orientation, meaning: card2.meaning },
     elementalRelationship: elemental,
     orientationAlignment: orientationMatch,
-    synthesis
+    alignmentType: determineAlignmentType(elemental, orientationMatch)
   };
 }
 function analyzeThreeCard(cardsInfo) {
@@ -737,10 +726,219 @@ function analyzeFiveCard(cardsInfo) {
     synthesis
   };
 }
+function analyzeRelationship(cardsInfo) {
+  if (!Array.isArray(cardsInfo) || cardsInfo.length < 3) {
+    return null;
+  }
+  const [you, them, connection] = cardsInfo;
+  if (!you || !them || !connection) {
+    return null;
+  }
+  const youLabel = you.position || "You / your energy";
+  const themLabel = them.position || "Them / their energy";
+  const connectionLabel = connection.position || "The connection / shared lesson";
+  const youVsThem = comparePositions(you, them, youLabel, themLabel);
+  const youBridge = analyzeElementalDignity(connection, you);
+  const themBridge = analyzeElementalDignity(connection, them);
+  const connectionSummaryParts = [
+    `${connection.card} ${connection.orientation} anchors the shared lesson between you.`,
+    connection.meaning ? connection.meaning : null,
+    youBridge?.description ? `With your card, ${youBridge.description}.` : null,
+    themBridge?.description ? `With their card, ${themBridge.description}.` : null
+  ].filter(Boolean);
+  const relationships = [];
+  if (youVsThem) {
+    let summary = `${youLabel} (${you.card} ${you.orientation}) and ${themLabel} (${them.card} ${them.orientation}): `;
+    if (youVsThem.elementalRelationship?.description) {
+      summary += youVsThem.elementalRelationship.description;
+    } else {
+      summary += `The dynamic between you ${youVsThem.alignmentType === "unified" ? "resonates with shared energy" : youVsThem.alignmentType === "harmonious" ? "flows harmoniously" : "holds creative tension"}.`;
+    }
+    relationships.push({
+      type: "axis",
+      axis: "You \u2194 Them",
+      summary,
+      positions: [0, 1],
+      cards: [
+        { card: you.card, orientation: you.orientation },
+        { card: them.card, orientation: them.orientation }
+      ],
+      elementalRelationship: youVsThem.elementalRelationship,
+      alignmentType: youVsThem.alignmentType
+    });
+  }
+  relationships.push({
+    type: "connection",
+    summary: connectionSummaryParts.join(" ") || `${connection.card} illustrates the shared energy in this connection.`,
+    positions: [2],
+    cards: [{ card: connection.card, orientation: connection.orientation }],
+    bridges: {
+      toYou: youBridge,
+      toThem: themBridge
+    }
+  });
+  return {
+    version: "1.0.0",
+    spreadKey: "relationship",
+    relationships,
+    positionNotes: [
+      { index: 0, label: "You / your energy", notes: ["How you are currently showing up."] },
+      { index: 1, label: "Them / their energy", notes: ["How they are approaching the connection."] },
+      { index: 2, label: "The connection / shared lesson", notes: ["The third energy between you\u2014what the bond is asking from both sides."] }
+    ],
+    dyad: {
+      you: { card: you.card, orientation: you.orientation },
+      them: { card: them.card, orientation: them.orientation },
+      elementalRelationship: youVsThem?.elementalRelationship
+    },
+    connection: {
+      card: connection.card,
+      orientation: connection.orientation,
+      meaning: connection.meaning,
+      bridges: {
+        toYou: youBridge,
+        toThem: themBridge
+      }
+    }
+  };
+}
+function analyzeDecision(cardsInfo) {
+  if (!Array.isArray(cardsInfo) || cardsInfo.length !== 5) {
+    return null;
+  }
+  const [heart, pathA, pathB, clarifier, freeWill] = cardsInfo;
+  if (!heart || !pathA || !pathB) {
+    return null;
+  }
+  const heartLabel = heart.position || "Heart of the decision";
+  const pathALabel = pathA.position || "Path A \u2014 energy & likely outcome";
+  const pathBLabel = pathB.position || "Path B \u2014 energy & likely outcome";
+  const clarifierLabel = clarifier?.position || "What clarifies the best path";
+  const freeWillLabel = freeWill?.position || "What to remember about your free will";
+  const heartVsA = comparePositions(heart, pathA, heartLabel, pathALabel);
+  const heartVsB = comparePositions(heart, pathB, heartLabel, pathBLabel);
+  const pathAVsB = comparePositions(pathA, pathB, pathALabel, pathBLabel);
+  const relationships = [];
+  if (heartVsA) {
+    let summary = `${heartLabel} (${heart.card} ${heart.orientation}) and ${pathALabel} (${pathA.card} ${pathA.orientation}): `;
+    if (heartVsA.elementalRelationship?.description) {
+      summary += heartVsA.elementalRelationship.description;
+    } else {
+      summary += `This path ${heartVsA.alignmentType === "unified" ? "strongly aligns with" : heartVsA.alignmentType === "harmonious" ? "supports" : "creates complexity with"} your core values.`;
+    }
+    relationships.push({
+      type: "axis",
+      axis: "Heart \u2194 Path A",
+      summary,
+      positions: [0, 1],
+      cards: [
+        { card: heart.card, orientation: heart.orientation },
+        { card: pathA.card, orientation: pathA.orientation }
+      ],
+      elementalRelationship: heartVsA.elementalRelationship,
+      alignmentType: heartVsA.alignmentType
+    });
+  }
+  if (heartVsB) {
+    let summary = `${heartLabel} (${heart.card} ${heart.orientation}) and ${pathBLabel} (${pathB.card} ${pathB.orientation}): `;
+    if (heartVsB.elementalRelationship?.description) {
+      summary += heartVsB.elementalRelationship.description;
+    } else {
+      summary += `This path ${heartVsB.alignmentType === "unified" ? "strongly aligns with" : heartVsB.alignmentType === "harmonious" ? "supports" : "creates complexity with"} your core values.`;
+    }
+    relationships.push({
+      type: "axis",
+      axis: "Heart \u2194 Path B",
+      summary,
+      positions: [0, 2],
+      cards: [
+        { card: heart.card, orientation: heart.orientation },
+        { card: pathB.card, orientation: pathB.orientation }
+      ],
+      elementalRelationship: heartVsB.elementalRelationship,
+      alignmentType: heartVsB.alignmentType
+    });
+  }
+  if (pathAVsB) {
+    let summary = `${pathALabel} (${pathA.card} ${pathA.orientation}) and ${pathBLabel} (${pathB.card} ${pathB.orientation}): `;
+    if (pathAVsB.elementalRelationship?.description) {
+      summary += pathAVsB.elementalRelationship.description;
+    } else {
+      summary += `These paths ${pathAVsB.alignmentType === "unified" ? "share similar energies" : pathAVsB.alignmentType === "tension" || pathAVsB.alignmentType === "parallel-tension" ? "contrast with each other" : "offer different approaches"}.`;
+    }
+    relationships.push({
+      type: "axis",
+      axis: "Path A \u2194 Path B",
+      summary,
+      positions: [1, 2],
+      cards: [
+        { card: pathA.card, orientation: pathA.orientation },
+        { card: pathB.card, orientation: pathB.orientation }
+      ],
+      elementalRelationship: pathAVsB.elementalRelationship,
+      alignmentType: pathAVsB.alignmentType
+    });
+  }
+  const guidanceSummary = buildDecisionGuidanceSummary(clarifier, clarifierLabel, freeWill, freeWillLabel);
+  if (guidanceSummary) {
+    const guidanceCards = [clarifier, freeWill].filter(Boolean).map((card) => ({
+      card: card.card,
+      orientation: card.orientation
+    }));
+    const guidancePositions = [];
+    if (clarifier) guidancePositions.push(3);
+    if (freeWill) guidancePositions.push(4);
+    relationships.push({
+      type: "sequence",
+      summary: guidanceSummary,
+      positions: guidancePositions,
+      cards: guidanceCards
+    });
+  }
+  return {
+    version: "1.0.0",
+    spreadKey: "decision",
+    relationships,
+    positionNotes: [
+      { index: 0, label: "Heart of the decision", notes: ["Core desire or non-negotiable value."] },
+      { index: 1, label: "Path A \u2014 energy & likely outcome", notes: ["Trajectory if you commit to Path A."] },
+      { index: 2, label: "Path B \u2014 energy & likely outcome", notes: ["Trajectory if you commit to Path B."] },
+      { index: 3, label: "What clarifies the best path", notes: ["Insight that helps you evaluate the options."] },
+      { index: 4, label: "What to remember about your free will", notes: ["Agency reminder; how you shape the outcome."] }
+    ],
+    comparisons: {
+      heartVsA,
+      heartVsB,
+      pathAVsB
+    },
+    guidance: {
+      clarifier: clarifier ? { card: clarifier.card, orientation: clarifier.orientation } : null,
+      freeWill: freeWill ? { card: freeWill.card, orientation: freeWill.orientation } : null
+    }
+  };
+}
+function buildDecisionGuidanceSummary(clarifier, clarifierLabel, freeWill, freeWillLabel) {
+  const parts = [];
+  if (clarifier) {
+    parts.push(
+      `${clarifierLabel}: ${clarifier.card} ${clarifier.orientation} explains what data point or reflection helps you compare the routes.`
+    );
+  }
+  if (freeWill) {
+    parts.push(
+      `${freeWillLabel}: ${freeWill.card} ${freeWill.orientation} reminds you that your agency ultimately shapes how this plays out.`
+    );
+  }
+  if (!parts.length) return null;
+  if (clarifier && freeWill) {
+    parts.push("Together they ask you to pair clear-eyed assessment with empowered choice.");
+  }
+  return parts.join(" ");
+}
 var MAJOR_ELEMENTS, SUIT_ELEMENTS, REVERSAL_FRAMEWORKS;
 var init_spreadAnalysis = __esm({
   "lib/spreadAnalysis.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     MAJOR_ELEMENTS = {
       0: "Air",
       // The Fool (Uranus/Air)
@@ -801,27 +999,52 @@ var init_spreadAnalysis = __esm({
       none: {
         name: "All Upright",
         description: "All cards appear upright, showing energies flowing freely and directly.",
-        guidance: "Read each card's traditional upright meaning in the context of its position."
+        guidance: "Read each card's traditional upright meaning in the context of its position.",
+        examples: {}
       },
       blocked: {
         name: "Blocked Energy",
         description: "Reversed cards show energies present but meeting resistance, obstacles, or internal barriers.",
-        guidance: "Interpret reversals as the same energy encountering blockage that must be addressed before progress."
+        guidance: "Interpret reversals as the same energy encountering blockage that must be addressed before progress.",
+        examples: {
+          "The Magician": "Skills and resources are present but meeting external obstacles or internal resistance preventing manifestation",
+          "The Chariot": "Drive and determination exist but are stalled by conflicting priorities or external forces",
+          "Three of Pentacles": "Collaborative work blocked by miscommunication, lack of recognition, or organizational barriers",
+          "Eight of Wands": "Swift momentum halted by delays, bureaucracy, or logistical obstacles requiring patience"
+        }
       },
       delayed: {
         name: "Delayed Timing",
         description: "Reversed cards indicate timing is not yet ripe; patience and preparation are needed.",
-        guidance: "Read reversals as energies that will manifest later, after certain conditions are met."
+        guidance: "Read reversals as energies that will manifest later, after certain conditions are met.",
+        examples: {
+          "The Star": "Hope and renewal are coming, but the full restoration requires more time and gentle tending",
+          "The Sun": "Success and clarity will arrive after necessary groundwork is complete",
+          "Ace of Wands": "New creative spark is forming but needs incubation before launching externally",
+          "Two of Cups": "Partnership or connection is developing beneath the surface, not yet ready for full expression"
+        }
       },
       internalized: {
         name: "Internal Processing",
         description: "Reversed cards point to inner work, private processing, and energies working beneath the surface.",
-        guidance: "Interpret reversals as the same themes playing out in the inner world rather than external events."
+        guidance: "Interpret reversals as the same themes playing out in the inner world rather than external events.",
+        examples: {
+          "The Hermit": "Solitude and reflection happening in private contemplation rather than visible retreat",
+          "Justice": "Seeking inner fairness and self-accountability before external resolution",
+          "Five of Cups": "Grief and loss being processed quietly within, not yet shared or externalized",
+          "Knight of Swords": "Mental clarity and decisiveness operating in internal dialogue and planning"
+        }
       },
       contextual: {
         name: "Context-Dependent",
         description: "Reversed cards are interpreted individually based on their unique position and relationships.",
-        guidance: "Read each reversal according to what makes most sense for that specific card and position."
+        guidance: "Read each reversal according to what makes most sense for that specific card and position.",
+        examples: {
+          "The Tower": "In Challenge position: Avoiding necessary change; in Advice: Transform gradually vs suddenly",
+          "The Devil": "In Subconscious: Releasing limiting beliefs; in External: Others' attachments affecting you",
+          "Seven of Swords": "In Past: Previous deception being revealed; in Advice: Straightforward honesty needed now",
+          "Ten of Pentacles": "In Outcome: Legacy work still developing; in Hopes/Fears: Ambivalence about stability vs freedom"
+        }
       }
     };
     __name(getReversalFrameworkDescription, "getReversalFrameworkDescription");
@@ -835,22 +1058,25 @@ var init_spreadAnalysis = __esm({
     __name(analyzeTimeline, "analyzeTimeline");
     __name(analyzeConsciousness, "analyzeConsciousness");
     __name(analyzeStaff, "analyzeStaff");
+    __name(determineAlignmentType, "determineAlignmentType");
+    __name(buildCrossCheckSummary, "buildCrossCheckSummary");
     __name(comparePositions, "comparePositions");
     __name(analyzeThreeCard, "analyzeThreeCard");
     __name(buildThreeCardNarrative, "buildThreeCardNarrative");
     __name(analyzeFiveCard, "analyzeFiveCard");
+    __name(analyzeRelationship, "analyzeRelationship");
+    __name(analyzeDecision, "analyzeDecision");
+    __name(buildDecisionGuidanceSummary, "buildDecisionGuidanceSummary");
   }
 });
 
 // lib/minorMeta.js
 function parseMinorName(name) {
-  if (!name || typeof name !== "string")
-    return null;
+  if (!name || typeof name !== "string") return null;
   const match2 = name.match(
     /^(\w+)\s+of\s+(Wands|Cups|Swords|Pentacles)$/
   );
-  if (!match2)
-    return null;
+  if (!match2) return null;
   const [, rank, suit] = match2;
   return { rank, suit };
 }
@@ -865,8 +1091,7 @@ function getMinorContext(cardLike = {}) {
       suit = suit || parsed.suit;
     }
   }
-  if (!suit || !rank)
-    return null;
+  if (!suit || !rank) return null;
   const isCourt = ["Page", "Knight", "Queen", "King"].includes(rank);
   const pipValues = {
     Ace: 1,
@@ -900,8 +1125,7 @@ function getMinorContext(cardLike = {}) {
 }
 function buildMinorSummary(cardLike = {}) {
   const ctx = getMinorContext(cardLike);
-  if (!ctx)
-    return "";
+  if (!ctx) return "";
   const bits = [];
   if (ctx.suitTheme) {
     bits.push(
@@ -922,7 +1146,7 @@ function buildMinorSummary(cardLike = {}) {
 var SUIT_THEMES, PIP_NUMEROLOGY, COURT_ARCHETYPES;
 var init_minorMeta = __esm({
   "lib/minorMeta.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     SUIT_THEMES = {
       Wands: "fire, initiative, creativity, desire, and the way you act on your will",
       Cups: "water, emotions, relationships, intuition, and how you give and receive care",
@@ -965,8 +1189,7 @@ function buildPipInterpretation(suit, rank) {
 }
 function getImageryHook(cardNumber, orientation = "upright") {
   const imagery = MAJOR_ARCANA_IMAGERY[cardNumber];
-  if (!imagery)
-    return null;
+  if (!imagery) return null;
   const isReversed = orientation.toLowerCase() === "reversed";
   return {
     visual: imagery.visual,
@@ -978,14 +1201,12 @@ function isMajorArcana(cardNumber) {
   return cardNumber !== void 0 && cardNumber >= 0 && cardNumber <= 21;
 }
 function getElementalImagery(element1, element2) {
-  if (!element1 || !element2)
-    return null;
+  if (!element1 || !element2) return null;
   const key = `${element1}-${element2}`;
   return ELEMENTAL_SENSORY[key] || null;
 }
 function getMinorImageryHook(input) {
-  if (!input)
-    return null;
+  if (!input) return null;
   const {
     card,
     suit,
@@ -1024,7 +1245,7 @@ function getMinorImageryHook(input) {
 var MINOR_ARCANA_IMAGERY, MINOR_SUIT_IMAGERY, PIP_RANK_VALUES, MINOR_PIP_IMAGERY, MAJOR_ARCANA_IMAGERY, ELEMENTAL_SENSORY;
 var init_imageryHooks = __esm({
   "lib/imageryHooks.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     init_minorMeta();
     MINOR_ARCANA_IMAGERY = {
       "Page of Wands": {
@@ -1559,28 +1780,77 @@ var init_imageryHooks = __esm({
 });
 
 // lib/narrativeSpine.js
-function analyzeSpineCompleteness(text) {
+function segmentSentences(text) {
+  if (!text || typeof text !== "string") return [];
+  return text.split(/(?<=[.!?])\s+|\n+/).map((sentence) => sentence.trim()).filter(Boolean);
+}
+function hasCardReference(text) {
+  if (!text) return false;
+  return MINOR_ARCANA_PATTERN.test(text) || MAJOR_ARCANA_PATTERN.test(text);
+}
+function detectWhatClause(text, sentences) {
+  if (!text) return false;
+  if (hasCardReference(text)) return true;
+  if (sentences.some((sentence) => CARD_HEADER_PATTERN.test(sentence))) {
+    return true;
+  }
+  return sentences.some((sentence) => {
+    const trimmed = sentence.trim();
+    if (!trimmed) return false;
+    if (trimmed.split(/\s+/).length < MIN_SENTENCE_WORDS) return false;
+    return CARD_CONTEXT_PATTERN.test(trimmed) && DESCRIPTIVE_VERB_PATTERN.test(trimmed);
+  });
+}
+function detectWhyClause(text) {
+  if (!text) return false;
+  return WHY_PATTERNS.some((pattern) => pattern.test(text));
+}
+function detectWhatsNextClause(text) {
+  if (!text) return false;
+  return WHATS_NEXT_PATTERNS.some((pattern) => pattern.test(text));
+}
+function resolveHint(spineHints = {}, key, detector) {
+  if (Object.prototype.hasOwnProperty.call(spineHints, key) && typeof spineHints[key] === "boolean") {
+    return spineHints[key];
+  }
+  return detector();
+}
+function detectSpineElements(text, spineHints = {}) {
+  const safeText = typeof text === "string" ? text : "";
+  const sentences = segmentSentences(safeText);
+  const what = resolveHint(spineHints, "what", () => detectWhatClause(safeText, sentences));
+  const why = resolveHint(spineHints, "why", () => detectWhyClause(safeText));
+  const whatsNext = resolveHint(spineHints, "whatsNext", () => detectWhatsNextClause(safeText));
+  return { what, why, whatsNext };
+}
+function analyzeSpineCompleteness(text, options = {}) {
   if (!text || typeof text !== "string") {
     return {
       isComplete: false,
       missingElements: ["what", "why", "whatsNext"],
+      missing: ["what", "why", "whatsNext"],
+      missingRequired: ["what"],
+      present: { what: false, why: false, whatsNext: false },
       suggestions: ["Add concrete description of the card/situation", "Include causal connector", "Provide forward-looking guidance"]
     };
   }
-  const lowerText = text.toLowerCase();
-  const present = {};
+  const { spineHints } = options;
+  const present = detectSpineElements(text, spineHints);
   const missing = [];
+  const missingRequired = [];
   for (const [key, element] of Object.entries(SPINE_ELEMENTS)) {
-    const hasElement = element.keywords.some((keyword) => lowerText.includes(keyword));
-    present[key] = hasElement;
-    if (element.required && !hasElement) {
+    if (!present[key]) {
       missing.push(key);
+      if (element.required) {
+        missingRequired.push(key);
+      }
     }
   }
   return {
-    isComplete: missing.length === 0,
+    isComplete: missingRequired.length === 0,
     present,
     missing,
+    missingRequired,
     suggestions: missing.map((key) => `Consider adding: ${SPINE_ELEMENTS[key].name}`)
   };
 }
@@ -1601,7 +1871,8 @@ function buildWhyFromElemental(elementalRelationship, card1Name, card2Name) {
 }
 function enhanceSection(section, metadata = {}) {
   const analysis = analyzeSpineCompleteness(section);
-  if (analysis.isComplete) {
+  const missingKeys = Array.isArray(analysis.missing) ? analysis.missing : Array.isArray(analysis.missingElements) ? analysis.missingElements : [];
+  if (missingKeys.length === 0) {
     return {
       text: section,
       validation: { ...analysis, enhanced: false }
@@ -1609,42 +1880,46 @@ function enhanceSection(section, metadata = {}) {
   }
   let enhanced = section || "";
   const enhancements = [];
-  if (analysis.missing.includes("what") && metadata.cards) {
-    const cardInfo = Array.isArray(metadata.cards) ? metadata.cards[0] : metadata.cards;
+  let detection = analysis.present || detectSpineElements(enhanced);
+  const cards = Array.isArray(metadata.cards) ? metadata.cards : metadata.cards ? [metadata.cards] : [];
+  if (!detection.what && cards.length > 0) {
+    const cardInfo = cards[0];
     if (cardInfo && cardInfo.card && cardInfo.position) {
       const orientation = typeof cardInfo.orientation === "string" && cardInfo.orientation.trim() ? ` ${cardInfo.orientation}` : "";
       const whatStatement = `${cardInfo.position}: ${cardInfo.card}${orientation}.`;
       enhanced = `${whatStatement} ${enhanced}`.trim();
       enhancements.push("Added card identification");
+      detection = detectSpineElements(enhanced);
     }
   }
-  if (analysis.missing.includes("why") && metadata.relationships && metadata.cards) {
-    const cards = Array.isArray(metadata.cards) ? metadata.cards : [metadata.cards];
-    if (cards.length >= 2 && metadata.relationships.elementalRelationship) {
-      const whyStatement = buildWhyFromElemental(
-        metadata.relationships.elementalRelationship,
-        cards[0].card,
-        cards[1].card
-      );
-      if (whyStatement) {
-        enhanced += ` ${whyStatement}`;
-        enhancements.push("Added causal connector");
-      }
+  if (!detection.why && cards.length >= 2 && metadata.relationships?.elementalRelationship) {
+    const whyStatement = buildWhyFromElemental(
+      metadata.relationships.elementalRelationship,
+      cards[0].card,
+      cards[1].card
+    );
+    if (whyStatement) {
+      enhanced = enhanced ? `${enhanced} ${whyStatement}` : whyStatement;
+      enhancements.push("Added causal connector");
+      detection = detectSpineElements(enhanced);
     }
   }
-  if (analysis.missing.includes("whatsNext") && metadata.type) {
+  if (!detection.whatsNext && typeof metadata.type === "string") {
     const forwardTypes = ["timeline", "outcome", "future", "staff"];
     if (forwardTypes.includes(metadata.type.toLowerCase())) {
       const guidancePrompt = "Consider what this trajectory invites you to do next.";
-      enhanced += ` ${guidancePrompt}`;
+      enhanced = enhanced ? `${enhanced} ${guidancePrompt}` : guidancePrompt;
       enhancements.push("Added forward-looking guidance");
+      detection = detectSpineElements(enhanced);
     }
   }
+  const updatedAnalysis = analyzeSpineCompleteness(enhanced);
+  const didEnhance = enhancements.length > 0;
   return {
     text: enhanced,
     validation: {
-      ...analysis,
-      enhanced: true,
+      ...updatedAnalysis,
+      enhanced: didEnhance,
       enhancements
     }
   };
@@ -1656,18 +1931,22 @@ function validateReadingNarrative(readingText) {
       errors: ["Reading text is empty or invalid"]
     };
   }
-  const sectionPattern = /\*\*([^*]+)\*\*/g;
+  const sectionPattern = /(\*\*([^*]+)\*\*)|(^#{2,6}\s+(.+)$)/gm;
   const sections = [];
   let match2;
   let lastIndex = 0;
   while ((match2 = sectionPattern.exec(readingText)) !== null) {
-    if (lastIndex > 0) {
-      const prevHeader = sections[sections.length - 1].header;
+    const header = (match2[2] || match2[4] || "").trim();
+    if (!header) {
+      lastIndex = sectionPattern.lastIndex;
+      continue;
+    }
+    if (sections.length > 0) {
       const content = readingText.substring(lastIndex, match2.index).trim();
       sections[sections.length - 1].content = content;
     }
     sections.push({
-      header: match2[1],
+      header,
       start: match2.index,
       content: ""
     });
@@ -1690,29 +1969,79 @@ function validateReadingNarrative(readingText) {
     suggestions: incompleteCount > 0 ? ["Review incomplete sections and ensure they include: what is happening, why/how (connector), and what's next"] : []
   };
 }
-var SPINE_ELEMENTS;
+var SPINE_ELEMENTS, MIN_SENTENCE_WORDS, CARD_HEADER_PATTERN, MINOR_ARCANA_PATTERN, MAJOR_ARCANA_NAMES, MAJOR_ARCANA_PATTERN, CARD_CONTEXT_PATTERN, DESCRIPTIVE_VERB_PATTERN, WHY_PATTERNS, WHATS_NEXT_PATTERNS;
 var init_narrativeSpine = __esm({
   "lib/narrativeSpine.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     SPINE_ELEMENTS = {
       what: {
         name: "What is happening",
-        keywords: ["stands", "shows", "reveals", "manifests", "appears", "presents"],
         required: true
       },
       why: {
         name: "Why/How (connector)",
-        keywords: ["because", "therefore", "however", "so that", "this", "since"],
         required: false
         // Optional for single-card sections
       },
       whatsNext: {
         name: "What's next",
-        keywords: ["points toward", "suggests", "invites", "calls for", "trajectory", "path"],
         required: false
         // Optional for past-focused positions
       }
     };
+    MIN_SENTENCE_WORDS = 5;
+    CARD_HEADER_PATTERN = /^[\w\s]+[:\-–]/;
+    MINOR_ARCANA_PATTERN = /\b(?:ace|two|three|four|five|six|seven|eight|nine|ten|page|knight|queen|king)\s+of\s+(?:wands|cups|swords|pentacles)\b/i;
+    MAJOR_ARCANA_NAMES = [
+      "fool",
+      "magician",
+      "high priestess",
+      "empress",
+      "emperor",
+      "hierophant",
+      "lovers",
+      "chariot",
+      "strength",
+      "hermit",
+      "wheel of fortune",
+      "justice",
+      "hanged man",
+      "death",
+      "temperance",
+      "devil",
+      "tower",
+      "star",
+      "moon",
+      "sun",
+      "judgement",
+      "judgment",
+      "world"
+    ];
+    MAJOR_ARCANA_PATTERN = new RegExp(`\\b(?:the\\s+)?(?:${MAJOR_ARCANA_NAMES.join("|")})\\b`, "i");
+    CARD_CONTEXT_PATTERN = /\b(?:card|position|energy|situation|scene|story|thread|theme|anchor|nucleus|timeline|past|present|future|influence|lesson|moment|lens|reflection|reflections|synthesis|guidance|reminder|insight)\b/i;
+    DESCRIPTIVE_VERB_PATTERN = /\b(?:is|are|feels|brings|ushers|marks|signals|casts|delivers|grounds|anchors|establishes|opens|presents|reveals|shows|illustrates|demonstrates|highlights|frames|illuminates|expresses|focuses|rests|sits|holds|carries|offers|spotlights|reminds|echoes|emerges|unfolds)\b/i;
+    WHY_PATTERNS = [
+      /\b(?:because|since|due to|thanks to|as a result|resulting in|which is why|which means)\b/i,
+      /\b(?:therefore|thus|hence|so that|so you can|so you might)\b/i,
+      /\b(?:stems from|rooted in|comes from|arises from|emerges from)\b/i,
+      /\b(?:leads to|creates|sparks|requires|demands)\b/i,
+      /,\s*(?:which|that)\s+(?:allows|invites|pushes|nudges|lets)\b/i,
+      /\bin turn\b/i
+    ];
+    WHATS_NEXT_PATTERNS = [
+      /\b(?:what's next|next|future|going forward|the road ahead|ahead|from here|on the horizon)\b/i,
+      /\b(?:consider|choose|decide|prepare|plan|commit|focus|lean|move|step)\s+(?:to|into|toward|forward|next)\b/i,
+      /\b(?:invites|encourages|calls|asks|urges|prompts|guides)\b/i,
+      /\b(?:guidance|advice|trajectory|path|action|step|practice)\b/i,
+      /\b(?:you can|you might|you could)\s+(?:now|next|begin|take|start)\b/i
+    ];
+    __name(segmentSentences, "segmentSentences");
+    __name(hasCardReference, "hasCardReference");
+    __name(detectWhatClause, "detectWhatClause");
+    __name(detectWhyClause, "detectWhyClause");
+    __name(detectWhatsNextClause, "detectWhatsNextClause");
+    __name(resolveHint, "resolveHint");
+    __name(detectSpineElements, "detectSpineElements");
     __name(analyzeSpineCompleteness, "analyzeSpineCompleteness");
     __name(buildWhyFromElemental, "buildWhyFromElemental");
     __name(enhanceSection, "enhanceSection");
@@ -1722,8 +2051,7 @@ var init_narrativeSpine = __esm({
 
 // lib/esotericMeta.js
 function normalizeRank(rawRank) {
-  if (!rawRank)
-    return null;
+  if (!rawRank) return null;
   const key = rawRank.toString().trim().toLowerCase();
   switch (key) {
     case "ace":
@@ -1759,29 +2087,23 @@ function normalizeRank(rawRank) {
   }
 }
 function inferRankFromName(cardName) {
-  if (typeof cardName !== "string")
-    return null;
+  if (typeof cardName !== "string") return null;
   const parts = cardName.split(" of ");
-  if (!parts[0])
-    return null;
+  if (!parts[0]) return null;
   return normalizeRank(parts[0]);
 }
 function getRankKey(cardInfo) {
   const directRank = normalizeRank(cardInfo?.rank);
-  if (directRank)
-    return directRank;
+  if (directRank) return directRank;
   if (typeof cardInfo?.rankValue === "number") {
     const mapped = RANK_NAME_BY_VALUE[cardInfo.rankValue];
-    if (mapped)
-      return mapped;
+    if (mapped) return mapped;
   }
   return inferRankFromName(cardInfo?.card || "");
 }
 function resolveSuit(cardInfo) {
-  if (cardInfo?.suit)
-    return cardInfo.suit;
-  if (typeof cardInfo?.card !== "string")
-    return null;
+  if (cardInfo?.suit) return cardInfo.suit;
+  if (typeof cardInfo?.card !== "string") return null;
   return SUITS.find((suit) => cardInfo.card.includes(suit)) || null;
 }
 function getAstroForCard(cardInfo = {}) {
@@ -1828,7 +2150,7 @@ function shouldSurfaceQabalahLens(cardInfo = {}) {
 var MAJOR_ARCANA_ASTRO, MINOR_DECANS, MAJOR_PATHS, RANK_TO_SEPHIROTH, SUIT_TO_WORLD, ASTRO_MINOR_PREFERRED_RANKS, QABALAH_MINOR_PREFERRED_RANKS, RANK_NAME_BY_VALUE, SUITS;
 var init_esotericMeta = __esm({
   "lib/esotericMeta.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     MAJOR_ARCANA_ASTRO = {
       0: {
         label: "Air \u2014 the elemental current of Aleph",
@@ -2243,16 +2565,14 @@ var init_esotericMeta = __esm({
 
 // lib/narrativeBuilder.js
 function pickOne(value) {
-  if (!value)
-    return "";
+  if (!value) return "";
   if (Array.isArray(value) && value.length > 0) {
     return value[Math.floor(Math.random() * value.length)];
   }
   return value;
 }
 function normalizeContext(context) {
-  if (!context || typeof context !== "string")
-    return "general";
+  if (!context || typeof context !== "string") return "general";
   const key = context.trim().toLowerCase();
   if (["love", "career", "self", "spiritual"].includes(key)) {
     return key;
@@ -2271,8 +2591,7 @@ function resolveSuitForContext(cardInfo = {}) {
 }
 function buildContextualClause(cardInfo = {}, context) {
   const normalized = normalizeContext(context);
-  if (normalized === "general")
-    return "";
+  if (normalized === "general") return "";
   const cardName = (cardInfo.card || "").toLowerCase();
   const specificMap = CARD_SPECIFIC_CONTEXT[normalized];
   if (specificMap && specificMap[cardName]) {
@@ -2290,8 +2609,7 @@ function buildContextualClause(cardInfo = {}, context) {
 }
 function buildContextReminder(context) {
   const normalized = normalizeContext(context);
-  if (normalized === "general")
-    return "";
+  if (normalized === "general") return "";
   return `We\u2019ll ground this reading in your ${getContextDescriptor(normalized)}, while keeping each card rooted in its Rider\u2013Waite\u2013Smith lineage.`;
 }
 function buildPositionCardText(cardInfo, position, options = {}) {
@@ -2380,10 +2698,8 @@ function getPositionOptions(themes, context) {
   return options;
 }
 function getCrossCheckReversalNote(position, themes) {
-  if (!position || !themes || !themes.reversalDescription)
-    return "";
-  if ((position.orientation || "").toLowerCase() !== "reversed")
-    return "";
+  if (!position || !themes || !themes.reversalDescription) return "";
+  if ((position.orientation || "").toLowerCase() !== "reversed") return "";
   const guidance = buildReversalGuidance(themes.reversalDescription);
   const positionName = position.name || "Position";
   return `${positionName} (${position.card} ${position.orientation}): ${guidance}`;
@@ -2478,8 +2794,7 @@ The cards respond with insight that honors both seen and unseen influences.` : `
 ${contextReminder}` : base;
 }
 function appendReversalReminder(text, cardsInfo, themes) {
-  if (!text)
-    return text;
+  if (!text) return text;
   if (!themes?.reversalDescription) {
     return text;
   }
@@ -2494,7 +2809,7 @@ ${reminder}`;
 function buildNucleusSection(nucleus, cardsInfo, themes, context) {
   const present = cardsInfo[0];
   const challenge = cardsInfo[1];
-  let section = `**THE HEART OF THE MATTER** (Nucleus)
+  let section = `### The Heart of the Matter (Nucleus)
 
 `;
   const presentPosition = present.position || "Present \u2014 core situation (Card 1)";
@@ -2512,7 +2827,7 @@ function buildTimelineSection(timeline, cardsInfo, themes, context) {
   const past = cardsInfo[2];
   const present = cardsInfo[0];
   const future = cardsInfo[3];
-  let section = `**THE TIMELINE** (Horizontal Axis)
+  let section = `### The Timeline (Horizontal Axis)
 
 `;
   const options = getPositionOptions(themes, context);
@@ -2540,8 +2855,7 @@ function buildTimelineSection(timeline, cardsInfo, themes, context) {
 }
 function getConnector(position, direction = "toPrev") {
   const template = POSITION_LANGUAGE[position];
-  if (!template)
-    return "";
+  if (!template) return "";
   if (direction === "toPrev" && template.connectorToPrev) {
     return pickOne(template.connectorToPrev);
   }
@@ -2553,7 +2867,7 @@ function getConnector(position, direction = "toPrev") {
 function buildConsciousnessSection(consciousness, cardsInfo, themes, context) {
   const subconscious = cardsInfo[5];
   const conscious = cardsInfo[4];
-  let section = `**CONSCIOUSNESS FLOW** (Vertical Axis)
+  let section = `### Consciousness Flow (Vertical Axis)
 
 `;
   section += `${buildPositionCardText(subconscious, subconscious.position || "Subconscious \u2014 roots / hidden forces (Card 6)", getPositionOptions(themes, context))}
@@ -2579,7 +2893,7 @@ function buildStaffSection(staff, cardsInfo, themes, context) {
   const external = cardsInfo[7];
   const hopesFears = cardsInfo[8];
   const outcome = cardsInfo[9];
-  let section = `**THE STAFF** (Context & Trajectory)
+  let section = `### The Staff (Context & Trajectory)
 
 `;
   section += `${buildPositionCardText(self, self.position || "Self / Advice \u2014 how to meet this (Card 7)", getPositionOptions(themes, context))}
@@ -2598,7 +2912,7 @@ function buildStaffSection(staff, cardsInfo, themes, context) {
   return section;
 }
 function buildCrossChecksSection(crossChecks, themes) {
-  let section = `**KEY RELATIONSHIPS**
+  let section = `### Key Relationships
 
 `;
   section += "This overview shows how core positions interact and compare.\n\n";
@@ -2614,6 +2928,23 @@ ${formatCrossCheck("Near Future vs Outcome", crossChecks.nearFutureVsOutcome, th
 ${formatCrossCheck("Subconscious vs Hopes & Fears", crossChecks.subconsciousVsHopesFears, themes)}`;
   section += "\n\nTaken together, these cross-checks point toward how to translate the spread's insights into your next aligned step.";
   return section;
+}
+function buildCrossCheckSynthesis(crossCheck) {
+  const { position1, position2, elementalRelationship, orientationAlignment, alignmentType } = crossCheck;
+  let synthesis = `${position1.name} (${position1.card} ${position1.orientation}) and ${position2.name} (${position2.card} ${position2.orientation}): `;
+  if (elementalRelationship?.description) {
+    synthesis += elementalRelationship.description + ". ";
+  }
+  const alignmentPhrases = {
+    "unified": "Both cards share the same elemental energy, creating a unified and intensified theme.",
+    "harmonious": "These positions work together harmoniously, supporting the same trajectory.",
+    "evolving-support": "The supportive elemental flow suggests evolution from one state to the next.",
+    "parallel-tension": "Both positions share orientation, indicating tension that runs consistently through this axis.",
+    "dynamic-shift": "Different orientations signal a dynamic shift or transformation between these positions.",
+    "complex": "The relationship between these positions shows nuanced dynamics worth exploring."
+  };
+  synthesis += alignmentPhrases[alignmentType] || "These positions relate in complex ways.";
+  return synthesis;
 }
 function formatCrossCheck(label, crossCheck, themes) {
   if (!crossCheck) {
@@ -2633,16 +2964,15 @@ function formatCrossCheck(label, crossCheck, themes) {
     getCrossCheckReversalNote(crossCheck.position2, themes)
   ].filter(Boolean);
   const parts = [];
-  if (indicator)
-    parts.push(indicator);
-  parts.push(crossCheck.synthesis.trim());
+  if (indicator) parts.push(indicator);
+  parts.push(buildCrossCheckSynthesis(crossCheck).trim());
   if (reversalNotes.length > 0) {
     parts.push(reversalNotes.join(" "));
   }
   return `${label}: ${parts.join(" ")}`.trim();
 }
 function buildReflectionsSection(reflectionsText) {
-  return `**YOUR REFLECTIONS**
+  return `### Your Reflections
 
 This reflection shows how this reading lands in your lived experience.
 
@@ -2651,7 +2981,7 @@ ${reflectionsText.trim()}
 Your intuitive impressions are valid and add personal meaning to this reading.`;
 }
 function buildSynthesisSection(cardsInfo, themes, celticAnalysis, userQuestion, context) {
-  let section = `**SYNTHESIS & GUIDANCE**
+  let section = `### Synthesis & Guidance
 
 `;
   section += "This synthesis shows how the spread integrates into actionable guidance.\n\n";
@@ -2728,7 +3058,7 @@ function buildFiveCardReading({
   }
   const [core, challenge, hidden, support, direction] = cardsInfo;
   const positionOptions = getPositionOptions(themes, context);
-  let coreSection = `**FIVE-CARD CLARITY \u2014 CORE & CHALLENGE**
+  let coreSection = `### Five-Card Clarity \u2014 Core & Challenge
 
 `;
   coreSection += buildPositionCardText(
@@ -2759,7 +3089,7 @@ ${fiveCardAnalysis.coreVsChallenge.description}.`;
     cards: [core, challenge],
     relationships: { elementalRelationship: fiveCardAnalysis?.coreVsChallenge }
   }).text);
-  let hiddenSection = `**HIDDEN INFLUENCE**
+  let hiddenSection = `### Hidden Influence
 
 `;
   const hiddenPosition = hidden.position || "Hidden / subconscious influence";
@@ -2774,7 +3104,7 @@ ${fiveCardAnalysis.coreVsChallenge.description}.`;
     type: "subconscious",
     cards: [hidden]
   }).text);
-  let supportSection = `**SUPPORTING ENERGIES**
+  let supportSection = `### Supporting Energies
 
 `;
   const supportPosition = support.position || "Support / helpful energy";
@@ -2789,7 +3119,7 @@ ${fiveCardAnalysis.coreVsChallenge.description}.`;
     type: "support",
     cards: [support]
   }).text);
-  let directionSection = `**DIRECTION ON YOUR CURRENT PATH**
+  let directionSection = `### Direction on Your Current Path
 
 `;
   const directionPosition = direction.position || "Likely direction on current path";
@@ -2842,7 +3172,7 @@ function buildRelationshipReading({
   const [youCard, themCard, connectionCard, dynamicsCard, outcomeCard] = Array.isArray(cardsInfo) ? cardsInfo : [];
   const options = getPositionOptions(themes, context);
   let reversalReminderEmbedded = false;
-  let youThem = `**YOU AND THEM**
+  let youThem = `### You and Them
 
 `;
   const dyadCards = [youCard, themCard].filter(Boolean);
@@ -2910,7 +3240,7 @@ ${summaryLines.join(" ")}`;
     }).text
   );
   if (connectionCard) {
-    let connection = `**THE CONNECTION**
+    let connection = `### The Connection
 
 `;
     connection += "This position shows what the bond is asking for right now.\n\n";
@@ -2941,67 +3271,49 @@ ${connectionReversalNote.text}`;
       }).text
     );
   }
-  let guidance = `**GUIDANCE FOR THIS CONNECTION**
+  const primaryGuidanceCards = [dynamicsCard, outcomeCard].filter(Boolean);
+  const fallbackGuidanceCard = primaryGuidanceCards[0] || connectionCard || themCard || youCard;
+  let guidance = `### Guidance for This Connection
 
 `;
   guidance += "This guidance shows how to participate with agency, honesty, and care.\n\n";
-  const guidanceCards = [];
-  if (dynamicsCard) {
-    const dynamicsPosition = dynamicsCard.position || "Dynamics / guidance";
-    const dynamicsConnector = getConnector(dynamicsPosition, "toPrev");
-    const dynamicsText = buildPositionCardText(
-      dynamicsCard,
-      dynamicsPosition,
+  if (fallbackGuidanceCard) {
+    const fallbackPosition = fallbackGuidanceCard.position ? fallbackGuidanceCard.position : fallbackGuidanceCard === youCard ? "You / your energy" : fallbackGuidanceCard === themCard ? "Them / their energy" : fallbackGuidanceCard === dynamicsCard ? "Dynamics / guidance" : fallbackGuidanceCard === outcomeCard ? "Outcome / what this can become" : "The connection / shared lesson";
+    const fallbackConnector = getConnector(fallbackPosition, "toPrev");
+    const fallbackText = buildPositionCardText(
+      fallbackGuidanceCard,
+      fallbackPosition,
       options
     );
-    guidance += dynamicsConnector ? `${dynamicsConnector} ${dynamicsText}` : dynamicsText;
-    const dynamicsReversalNote = buildInlineReversalNote(dynamicsCard, themes, {
+    guidance += fallbackConnector ? `${fallbackConnector} ${fallbackText}
+
+` : `${fallbackText}
+
+`;
+    const fallbackReversal = buildInlineReversalNote(fallbackGuidanceCard, themes, {
       shouldIncludeReminder: !reversalReminderEmbedded
     });
-    if (dynamicsReversalNote) {
-      guidance += `
+    if (fallbackReversal) {
+      guidance += `${fallbackReversal.text}
 
-${dynamicsReversalNote.text}`;
-      if (dynamicsReversalNote.includesReminder) {
+`;
+      if (fallbackReversal.includesReminder) {
         reversalReminderEmbedded = true;
       }
     }
-    guidance += "\n\n";
-    guidanceCards.push(dynamicsCard);
   }
-  if (outcomeCard) {
-    const outcomePosition = outcomeCard.position || "Outcome / what this can become";
-    const outcomeConnector = getConnector(outcomePosition, "toPrev");
-    const outcomeText = buildPositionCardText(
-      outcomeCard,
-      outcomePosition,
-      options
-    );
-    guidance += outcomeConnector ? `${outcomeConnector} ${outcomeText}` : outcomeText;
-    const outcomeReversalNote = buildInlineReversalNote(outcomeCard, themes, {
-      shouldIncludeReminder: !reversalReminderEmbedded
-    });
-    if (outcomeReversalNote) {
-      guidance += `
-
-${outcomeReversalNote.text}`;
-      if (outcomeReversalNote.includesReminder) {
-        reversalReminderEmbedded = true;
-      }
-    }
-    guidance += "\n\n";
-    guidanceCards.push(outcomeCard);
-  }
-  guidance += "Emphasize what supports honest communication, mutual respect, and boundaries. Treat these insights as a mirror that informs how you choose to show up\u2014never as a command to stay or leave.";
-  const guidancePrompts = guidanceCards.map((card) => buildGuidanceActionPrompt(card, themes)).filter(Boolean);
+  const actionSources = [youCard, themCard, connectionCard, dynamicsCard, outcomeCard].filter(Boolean);
+  const guidancePrompts = actionSources.map((card) => buildGuidanceActionPrompt(card, themes)).filter(Boolean);
   if (guidancePrompts.length > 0) {
-    guidance += ` ${guidancePrompts.join(" ")}`;
+    guidance += `${guidancePrompts.join(" ")}
+
+`;
   }
-  guidance += "\n\nChoose the path that best honors honesty, care, and your own boundaries\u2014the outcome still rests in the choices you both make.";
+  guidance += "Emphasize honest communication, reciprocal care, and boundaries. Treat these insights as a mirror that informs how you choose to show up\u2014never as a command to stay or leave. Choose the path that best honors honesty, care, and your own boundaries\u2014the outcome still rests in the choices you both make.";
   sections.push(
     enhanceSection(guidance, {
       type: "relationship-guidance",
-      cards: guidanceCards
+      cards: actionSources
     }).text
   );
   if (reflectionsText && reflectionsText.trim()) {
@@ -3035,8 +3347,7 @@ function buildRelationshipElementalTakeaway(elemental, youCard, themCard) {
   }
 }
 function buildOccultFlavor(cardInfo) {
-  if (!cardInfo || !isMajorArcana(cardInfo.number))
-    return "";
+  if (!cardInfo || !isMajorArcana(cardInfo.number)) return "";
   const astro = getAstroForCard(cardInfo);
   const qabalah = getQabalahForCard(cardInfo);
   const bits = [];
@@ -3048,17 +3359,14 @@ function buildOccultFlavor(cardInfo) {
     const detail = qabalah.focus ? `, ${qabalah.focus}` : "";
     bits.push(`touches ${qabalah.label}${detail}`);
   }
-  if (!bits.length)
-    return "";
+  if (!bits.length) return "";
   return ` On an occult level, this ${bits.join(", ")}\u2014a symbolic backdrop rather than a fixed rule.`;
 }
 function buildGuidanceActionPrompt(cardInfo, themes) {
-  if (!cardInfo)
-    return "";
+  if (!cardInfo) return "";
   const cardName = cardInfo.card || "This card";
   const clause = extractCoreTheme(cardInfo.meaning);
-  if (!clause)
-    return "";
+  if (!clause) return "";
   const clauseLower = decapitalize(clause);
   const isReversed = (cardInfo.orientation || "").toLowerCase() === "reversed";
   if (isReversed) {
@@ -3088,14 +3396,12 @@ function buildInlineReversalNote(cardInfo, themes, { shouldIncludeReminder = fal
   };
 }
 function extractCoreTheme(meaning) {
-  if (!meaning || typeof meaning !== "string")
-    return "";
+  if (!meaning || typeof meaning !== "string") return "";
   const firstClause = meaning.split(/[.;]/)[0];
   return firstClause.trim();
 }
 function decapitalize(text) {
-  if (!text)
-    return "";
+  if (!text) return "";
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 function buildDecisionReading({
@@ -3116,7 +3422,7 @@ function buildDecisionReading({
   );
   const [heart, pathA, pathB, clarifier, freeWill] = Array.isArray(cardsInfo) ? cardsInfo : [];
   const options = getPositionOptions(themes, context);
-  let choice = `**THE CHOICE**
+  let choice = `### The Choice
 
 `;
   choice += buildPositionCardText(
@@ -3131,7 +3437,7 @@ function buildDecisionReading({
       cards: [heart]
     }).text
   );
-  let aSection = `**PATH A**
+  let aSection = `### Path A
 
 `;
   const pathAPosition = pathA.position || "Path A \u2014 energy & likely outcome";
@@ -3149,7 +3455,7 @@ function buildDecisionReading({
       cards: [pathA]
     }).text
   );
-  let bSection = `**PATH B**
+  let bSection = `### Path B
 
 `;
   const pathBPosition = pathB.position || "Path B \u2014 energy & likely outcome";
@@ -3167,7 +3473,7 @@ function buildDecisionReading({
       cards: [pathB]
     }).text
   );
-  let clarity = `**CLARITY + AGENCY**
+  let clarity = `### Clarity + Agency
 
 `;
   if (clarifier) {
@@ -3223,11 +3529,11 @@ function buildSingleCardReading({
   context
 }) {
   if (!Array.isArray(cardsInfo) || cardsInfo.length === 0 || !cardsInfo[0]) {
-    return "**ONE-CARD INSIGHT**\n\nNo card data was provided. Please draw at least one card to receive a focused message.";
+    return "### One-Card Insight\n\nNo card data was provided. Please draw at least one card to receive a focused message.";
   }
   const card = cardsInfo[0];
   const options = getPositionOptions(themes, context);
-  let narrative = `**ONE-CARD INSIGHT**
+  let narrative = `### One-Card Insight
 
 `;
   if (userQuestion && userQuestion.trim()) {
@@ -3252,7 +3558,7 @@ function buildSingleCardReading({
   if (reflectionsText && reflectionsText.trim()) {
     narrative += `
 
-**Your Reflections**
+### Your Reflections
 
 ${reflectionsText.trim()}`;
   }
@@ -3274,7 +3580,7 @@ function buildThreeCardReading({
   sections.push(buildOpening("Three-Card Story (Past \xB7 Present \xB7 Future)", userQuestion, context));
   const [past, present, future] = cardsInfo;
   const options = getPositionOptions(themes, context);
-  let narrative = `**THE STORY**
+  let narrative = `### The Story
 
 `;
   narrative += `${buildPositionCardText(past, past.position || "Past \u2014 influences that led here", options)}
@@ -3308,7 +3614,7 @@ function buildThreeCardReading({
   return appendReversalReminder(full, cardsInfo, themes);
 }
 function buildThreeCardSynthesis(cardsInfo, themes, userQuestion, context) {
-  let section = `**GUIDANCE**
+  let section = `### Guidance
 
 `;
   if (context && context !== "general") {
@@ -3384,12 +3690,16 @@ function buildSystemPrompt(spreadKey, themes, context) {
     "NARRATIVE GUIDELINES:",
     '- Story spine every section (WHAT \u2192 WHY \u2192 WHAT\u2019S NEXT) using connectors like "Because...", "Therefore...", "However...".',
     "- Cite card names, positions, and elemental dignities; add concise sensory imagery (especially for Major Arcana) to illustrate meaning.",
-    "- You may weave in standard astrological or Qabalah correspondences as gentle color only when they naturally support the card\u2019s core Rider\u2013Waite\u2013Smith meaning.",
+    "- You may weave in standard astrological or Qabalah correspondences as gentle color only when they naturally support the card's core Rider\u2013Waite\u2013Smith meaning.",
     `- Honor the ${themes.reversalDescription.name} reversal lens and Minor suit/rank rules; never invent cards or outcomes.`,
     "- Keep the tone trauma-informed, empowering, and non-deterministic.",
     "- Do NOT provide medical, mental health, legal, financial, or abuse-safety directives; when such topics arise, gently encourage seeking qualified professional support.",
     "- Make clear that outcome and timing cards describe likely trajectories based on current patterns, not fixed fate or guarantees.",
-    "- Deliver 4-6 flowing paragraphs separated by blank lines."
+    "- Deliver 5-7 flowing paragraphs separated by blank lines.",
+    "- DEPTH: Go beyond surface themes\u2014explore nuanced dynamics, specific examples, and actionable micro-steps.",
+    "- VARIETY: Vary your language when revisiting themes; use fresh metaphors and angles rather than repeating the same phrasing.",
+    "- CONCRETENESS: Include at least 2-3 specific, practical next steps the querent can take immediately.",
+    "- FORMAT: Output in Markdown with `###` section headings, bold card names the first time they appear, and bullet lists for actionable steps. Avoid HTML or fenced code blocks."
   ];
   if (spreadKey === "celtic") {
     lines.push(
@@ -3401,10 +3711,50 @@ function buildSystemPrompt(spreadKey, themes, context) {
       "",
       "THREE-CARD FLOW: Past \u2192 Present \u2192 Future. Show how each card leads to the next and note elemental support or tension along the way."
     );
+  } else if (spreadKey === "relationship") {
+    lines.push(
+      "",
+      'RELATIONSHIP FLOW: Explore the interplay between "You" and "Them" cards\u2014what patterns emerge when these energies meet? How does the Connection card provide a shared path forward? Include specific communication strategies, boundary-setting examples, and 2-3 concrete relational practices.'
+    );
+  }
+  const reversalSection = [""];
+  if (themes.reversalCount > 0 && themes.reversalFramework !== "none") {
+    reversalSection.push(
+      "## REVERSAL INTERPRETATION FRAMEWORK \u2014 MANDATORY",
+      "",
+      `You MUST interpret ALL ${themes.reversalCount} reversed card(s) in this reading using the "${themes.reversalDescription.name}" lens exclusively.`,
+      "",
+      `Framework Definition: ${themes.reversalDescription.description}`,
+      "",
+      `Guidance: ${themes.reversalDescription.guidance}`,
+      ""
+    );
+    if (themes.reversalDescription.examples && Object.keys(themes.reversalDescription.examples).length > 0) {
+      reversalSection.push("Concrete examples for this framework:");
+      Object.entries(themes.reversalDescription.examples).forEach(([card, interpretation]) => {
+        reversalSection.push(`\u2022 ${card} reversed: ${interpretation}`);
+      });
+      reversalSection.push("");
+    }
+    reversalSection.push(
+      "CRITICAL CONSTRAINTS:",
+      "\u2022 Do NOT mix different reversal interpretations within this reading",
+      '\u2022 Do NOT interpret one reversal as "blocked" and another as "internalized" unless the framework is Contextual',
+      "\u2022 Every reversed card must align with the same interpretive lens",
+      "\u2022 Maintain framework consistency even when it creates narrative tension"
+    );
+  } else if (themes.reversalCount === 0) {
+    reversalSection.push(
+      `REVERSAL LENS: ${themes.reversalDescription.name} \u2014 All cards appear upright in this reading.`
+    );
+  } else {
+    reversalSection.push(
+      `REVERSAL LENS: ${themes.reversalDescription.name} \u2014 ${themes.reversalDescription.description}`
+    );
   }
   lines.push(
+    ...reversalSection,
     "",
-    `REVERSAL LENS: ${themes.reversalDescription.name} \u2014 ${themes.reversalDescription.description} (${themes.reversalDescription.guidance})`,
     "ETHICS: Emphasize choice, agency, and trajectory language; forbid deterministic guarantees or fatalism.",
     "ETHICS: Do NOT provide diagnosis or treatment, or directives about medical, mental health, legal, financial, or abuse-safety matters; instead, when those themes surface, gently suggest consulting qualified professionals or trusted support resources."
   );
@@ -3425,12 +3775,20 @@ function buildUserPrompt(spreadKey, cardsInfo, userQuestion, reflectionsText, th
   if (context && context !== "general") {
     thematicLines.push(`- Context lens: Focus the narrative through ${getContextDescriptor(context)}`);
   }
-  if (themes.suitFocus)
-    thematicLines.push(`- ${themes.suitFocus}`);
-  if (themes.archetypeDescription)
-    thematicLines.push(`- ${themes.archetypeDescription}`);
-  if (themes.elementalBalance)
-    thematicLines.push(`- ${themes.elementalBalance}`);
+  if (themes.suitFocus) thematicLines.push(`- ${themes.suitFocus}`);
+  if (themes.archetypeDescription) thematicLines.push(`- ${themes.archetypeDescription}`);
+  if (themes.elementalBalance) thematicLines.push(`- ${themes.elementalBalance}`);
+  if (themes.timingProfile) {
+    const timingDescriptions = {
+      "near-term-tilt": "Timing: This reading leans toward near-term shifts if you engage actively with the guidance.",
+      "longer-arc-tilt": "Timing: This pattern unfolds across a longer structural arc requiring patience and sustained attention.",
+      "developing-arc": "Timing: Expect this to emerge as a meaningful chapter rather than a single moment."
+    };
+    const timingText = timingDescriptions[themes.timingProfile];
+    if (timingText) {
+      thematicLines.push(`- ${timingText}`);
+    }
+  }
   thematicLines.push(`- Reversal framework: ${themes.reversalDescription.name}`);
   prompt += `**Thematic Context**:
 ${thematicLines.join("\n")}
@@ -3459,11 +3817,20 @@ ${reflectionsText.trim()}
 `;
   }
   prompt += `
-Provide a cohesive, flowing narrative (no bullet lists) that:
-- References specific cards and positions
+Provide a cohesive, flowing Markdown-formatted narrative that:
+- Starts each major beat with a Title Case ### heading that is noun-focused (avoid "&" or "\u2194" in headings)
+- References specific cards and positions (bold card names the first time they appear)
+- Uses full sentences; if you need callouts, format them as bolded labels (e.g., **What:**) instead of shorthand like "What:"
+- Vary transitional phrases between paragraphs (Looking ahead, As a result, Even so, etc.) to keep the flow natural and avoid repeating the same opener in consecutive paragraphs
+- Do not start consecutive paragraphs with "Because" or "Therefore"; rotate to alternatives (Since, Even so, Still, Looking ahead) or omit the transition when the causal link is already clear
+- Break up sentences longer than ~30 words; use two shorter sentences or em dashes/semicolons for clarity
+- Ensures every paragraph ends with punctuation and closes any parenthetical references
+- Keep paragraphs to 2\u20134 sentences so the narrative stays readable
+- Describe reversed or blocked energy in fresh language (e.g., "In its inverted state...", "Under this blocked lens...") rather than repeating the same phrasing each time
 - Integrates the thematic and elemental insights above
-- Offers practical, grounded, empowering guidance
+- Includes a short bullet list of actionable micro-steps before the final paragraph, leading each bullet with a bolded action verb for parallelism (e.g., **Name**, **Initiate**)
 - Reminds the querent of their agency and free will
+- Keeps the closing encouragement to one or two concise paragraphs instead of a single long block
 Apply Minor Arcana interpretation rules to all non-Major cards.`;
   prompt += `
 
@@ -3525,6 +3892,30 @@ function buildCelticCrossPromptCards(cardsInfo, analysis, themes, context) {
   cards += `**KEY CROSS-CHECKS**:
 `;
   cards += buildPromptCrossChecks(analysis.crossChecks, themes);
+  cards += `
+
+**POSITION INTERPRETATION NOTES**:
+`;
+  cards += `- Present (1): Anchor for all axes; core atmosphere of this moment
+`;
+  cards += `- Challenge (2): Obstacle to integrate, not to defeat
+`;
+  cards += `- Past (3): Foundation influencing current state
+`;
+  cards += `- Near Future (4): Next chapter; cross-check with Outcome
+`;
+  cards += `- Conscious (5): Stated goals; verify alignment with Outcome
+`;
+  cards += `- Subconscious (6): Hidden drivers; mirror with Hopes/Fears
+`;
+  cards += `- Advice (7): Active guidance; assess impact on Outcome
+`;
+  cards += `- External (8): Environmental context, not command
+`;
+  cards += `- Hopes/Fears (9): Mixed desires/anxieties
+`;
+  cards += `- Outcome (10): Trajectory if unchanged, never deterministic
+`;
   return cards;
 }
 function buildThreeCardPromptCards(cardsInfo, analysis, themes, context) {
@@ -3583,6 +3974,18 @@ function buildCardWithImagery(cardInfo, position, options, prefix = "") {
       text += `*Sensory: ${hook.sensory}*
 `;
     }
+  } else if (cardInfo.suit && cardInfo.rank) {
+    const suitElements = {
+      Wands: "Fire",
+      Cups: "Water",
+      Swords: "Air",
+      Pentacles: "Earth"
+    };
+    const element = suitElements[cardInfo.suit];
+    if (element) {
+      text += `*Minor Arcana: ${cardInfo.suit} (${element}) \u2014 ${cardInfo.rank}*
+`;
+    }
   }
   return text;
 }
@@ -3624,14 +4027,12 @@ function buildFiveCardPromptCards(cardsInfo, fiveCardAnalysis, themes, context) 
 }
 function buildRelationshipPromptCards(cardsInfo, themes, context) {
   const options = getPositionOptions(themes, context);
-  const [youCard, themCard, connectionCard, dynamicsCard, outcomeCard] = cardsInfo;
+  const [youCard, themCard, connectionCard, ...extraCards] = cardsInfo;
   let out = `**RELATIONSHIP SNAPSHOT STRUCTURE**
 `;
   out += `- You / your energy
 - Them / their energy
 - The connection / shared lesson
-- Dynamics / guidance
-- Outcome / what this can become
 
 `;
   if (youCard) {
@@ -3647,19 +4048,15 @@ function buildRelationshipPromptCards(cardsInfo, themes, context) {
       options
     );
   }
-  if (dynamicsCard) {
-    out += buildCardWithImagery(
-      dynamicsCard,
-      dynamicsCard.position || "Dynamics / guidance",
-      options
-    );
-  }
-  if (outcomeCard) {
-    out += buildCardWithImagery(
-      outcomeCard,
-      outcomeCard.position || "Outcome / what this can become",
-      options
-    );
+  if (extraCards.length > 0) {
+    out += `
+**ADDITIONAL INSIGHT CARDS**
+`;
+    extraCards.forEach((card, idx) => {
+      if (!card) return;
+      const label = card.position || `Additional insight ${idx + 1}`;
+      out += buildCardWithImagery(card, label, options);
+    });
   }
   return out;
 }
@@ -3715,8 +4112,7 @@ function buildDecisionPromptCards(cardsInfo, themes, context) {
 function buildSingleCardPrompt(cardsInfo, themes, context) {
   const options = getPositionOptions(themes, context);
   const card = cardsInfo[0];
-  if (!card)
-    return "";
+  if (!card) return "";
   let out = `**ONE-CARD INSIGHT STRUCTURE**
 `;
   out += `- Theme / Guidance of the Moment
@@ -3748,16 +4144,13 @@ function buildPromptCrossChecks(crossChecks, themes) {
       return `- ${label}: No comparative insight available.`;
     }
     const shortenMeaning = /* @__PURE__ */ __name((meaning) => {
-      if (!meaning || typeof meaning !== "string")
-        return "";
+      if (!meaning || typeof meaning !== "string") return "";
       const firstClause = meaning.split(/[.!?]/)[0].trim();
-      if (!firstClause)
-        return "";
+      if (!firstClause) return "";
       return firstClause.length > 90 ? `${firstClause.slice(0, 87)}...` : firstClause;
     }, "shortenMeaning");
     const summarizePosition = /* @__PURE__ */ __name((position) => {
-      if (!position)
-        return null;
+      if (!position) return null;
       const base = `${position.name}: ${position.card} ${position.orientation}`.trim();
       const snippet = shortenMeaning(position.meaning);
       return snippet ? `${base} \u2014 ${snippet}` : base;
@@ -3778,7 +4171,8 @@ function buildPromptCrossChecks(crossChecks, themes) {
       details.push(reversalNotes.join(" "));
     }
     const positionsText = [summarizePosition(value.position1), summarizePosition(value.position2)].filter(Boolean).join(" | ");
-    const parts = [`- ${label}: ${value.synthesis.trim()}`];
+    const synthesis = buildCrossCheckSynthesis(value);
+    const parts = [`- ${label}: ${synthesis.trim()}`];
     if (positionsText) {
       parts.push(`(Positions: ${positionsText})`);
     }
@@ -3791,7 +4185,7 @@ function buildPromptCrossChecks(crossChecks, themes) {
 var CONTEXT_DESCRIPTORS, SUIT_CONTEXT_LENSES, MAJOR_CONTEXT_LENSES, CARD_SPECIFIC_CONTEXT, MINOR_SUITS, POSITION_LANGUAGE;
 var init_narrativeBuilder = __esm({
   "lib/narrativeBuilder.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     init_imageryHooks();
     init_minorMeta();
     init_narrativeSpine();
@@ -4253,6 +4647,7 @@ var init_narrativeBuilder = __esm({
     __name(buildConsciousnessSection, "buildConsciousnessSection");
     __name(buildStaffSection, "buildStaffSection");
     __name(buildCrossChecksSection, "buildCrossChecksSection");
+    __name(buildCrossCheckSynthesis, "buildCrossCheckSynthesis");
     __name(formatCrossCheck, "formatCrossCheck");
     __name(buildReflectionsSection, "buildReflectionsSection");
     __name(buildSynthesisSection, "buildSynthesisSection");
@@ -4290,8 +4685,7 @@ function sanitizeQuestion(question) {
   return typeof question === "string" ? question.trim().toLowerCase() : "";
 }
 function countMatches(text, keywords) {
-  if (!text)
-    return 0;
+  if (!text) return 0;
   let score = 0;
   for (const keyword of keywords) {
     if (keyword.includes(" ")) {
@@ -4341,7 +4735,7 @@ function inferContext(userQuestion, spreadKey) {
 var SPREAD_CONTEXT_DEFAULTS, CONTEXT_KEYWORDS;
 var init_contextDetection = __esm({
   "lib/contextDetection.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     SPREAD_CONTEXT_DEFAULTS = {
       relationship: "love"
     };
@@ -4444,6 +4838,21 @@ var init_contextDetection = __esm({
 });
 
 // api/tarot-reading.js
+function getSpreadDefinition(spreadName) {
+  return SPREAD_NAME_MAP[spreadName] || null;
+}
+function getExpectedCardCount(spreadName) {
+  const def = getSpreadDefinition(spreadName);
+  return def?.count ?? null;
+}
+function getSpreadKey(spreadName) {
+  const def = getSpreadDefinition(spreadName);
+  return def?.key || "general";
+}
+function requiresHighReasoningEffort(modelName = "") {
+  const normalized = modelName.toLowerCase();
+  return normalized.includes("gpt-5-pro") || normalized.includes("gpt-5.1");
+}
 async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}, requestId = "unknown") {
   if (!spreadInfo || !Array.isArray(cardsInfo) || cardsInfo.length === 0) {
     console.warn(`[${requestId}] performSpreadAnalysis: missing or invalid spreadInfo/cardsInfo, falling back to generic themes only.`);
@@ -4496,6 +4905,14 @@ async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}, reques
       console.log(`[${requestId}] Performing Five-Card analysis...`);
       spreadAnalysis = analyzeFiveCard(cardsInfo);
       console.log(`[${requestId}] Five-Card analysis complete`);
+    } else if (spreadKey === "relationship" && cardsInfo.length >= 3) {
+      console.log(`[${requestId}] Performing Relationship analysis...`);
+      spreadAnalysis = analyzeRelationship(cardsInfo);
+      console.log(`[${requestId}] Relationship analysis complete`);
+    } else if (spreadKey === "decision" && cardsInfo.length === 5) {
+      console.log(`[${requestId}] Performing Decision analysis...`);
+      spreadAnalysis = analyzeDecision(cardsInfo);
+      console.log(`[${requestId}] Decision analysis complete`);
     } else {
       console.log(`[${requestId}] No specific analysis for spreadKey: ${spreadKey} with ${cardsInfo.length} cards`);
     }
@@ -4509,17 +4926,6 @@ async function performSpreadAnalysis(spreadInfo, cardsInfo, options = {}, reques
     spreadAnalysis,
     spreadKey
   };
-}
-function getSpreadKey(spreadName) {
-  const map = {
-    "Celtic Cross (Classic 10-Card)": "celtic",
-    "Three-Card Story (Past \xB7 Present \xB7 Future)": "threeCard",
-    "Five-Card Clarity": "fiveCard",
-    "One-Card Insight": "single",
-    "Relationship Snapshot": "relationship",
-    "Decision / Two-Path": "decision"
-  };
-  return map[spreadName] || "general";
 }
 async function readRequestBody(request) {
   if (request.headers.get("content-length") === "0") {
@@ -4542,9 +4948,12 @@ function validatePayload({ spreadInfo, cardsInfo }) {
   if (!Array.isArray(cardsInfo) || cardsInfo.length === 0) {
     return "No cards were provided for the reading.";
   }
+  const expectedCount = getExpectedCardCount(spreadInfo.name);
+  if (expectedCount !== null && cardsInfo.length !== expectedCount) {
+    return `Spread "${spreadInfo.name}" expects ${expectedCount} cards, but received ${cardsInfo.length}.`;
+  }
   const hasInvalidCard = cardsInfo.some((card) => {
-    if (typeof card !== "object" || card === null)
-      return true;
+    if (typeof card !== "object" || card === null) return true;
     const requiredFields = ["position", "card", "orientation", "meaning"];
     return requiredFields.some((field) => {
       const value = card[field];
@@ -4554,12 +4963,38 @@ function validatePayload({ spreadInfo, cardsInfo }) {
   if (hasInvalidCard) {
     return "One or more cards are missing required details.";
   }
+  const minorMetadataIssues = [];
+  cardsInfo.forEach((card, index) => {
+    if (!card || typeof card.card !== "string") return;
+    const parsed = parseMinorName(card.card);
+    if (!parsed) return;
+    const hasSuit = typeof card.suit === "string" && card.suit.trim().length > 0;
+    const hasRank = typeof card.rank === "string" && card.rank.trim().length > 0;
+    const hasRankValue = typeof card.rankValue === "number";
+    if (hasSuit && hasRank && hasRankValue) {
+      return;
+    }
+    const missing = [];
+    if (!hasSuit) missing.push("suit");
+    if (!hasRank) missing.push("rank");
+    if (!hasRankValue) missing.push("rankValue");
+    minorMetadataIssues.push(
+      `${card.card} @ position ${index + 1} missing ${missing.join(", ")}`
+    );
+  });
+  if (minorMetadataIssues.length > 0) {
+    console.warn(
+      "[validatePayload] Minor Arcana metadata incomplete; falling back to string parsing which may degrade nuance:",
+      minorMetadataIssues.join(" | ")
+    );
+  }
   return null;
 }
 async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, userQuestion, reflectionsText, analysis, context }, requestId = "unknown") {
   const endpoint = env.AZURE_OPENAI_ENDPOINT.replace(/\/+$/, "");
   const apiKey = env.AZURE_OPENAI_API_KEY;
-  const modelName = env.AZURE_OPENAI_GPT5_MODEL;
+  const deploymentName = env.AZURE_OPENAI_GPT5_MODEL;
+  const apiVersion = env.AZURE_OPENAI_API_VERSION || "preview";
   console.log(`[${requestId}] Building Azure GPT-5 prompts...`);
   const { systemPrompt, userPrompt } = buildEnhancedClaudePrompt({
     spreadInfo,
@@ -4571,20 +5006,19 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
     context
   });
   console.log(`[${requestId}] System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
-  const url = `${endpoint}/openai/v1/responses`;
+  const url = `${endpoint}/openai/v1/responses?api-version=${encodeURIComponent(apiVersion)}`;
   console.log(`[${requestId}] Making Azure GPT-5 Responses API request to: ${url}`);
-  console.log(`[${requestId}] Using model: ${modelName}`);
+  console.log(`[${requestId}] Using deployment: ${deploymentName}, api-version: ${apiVersion}`);
   let reasoningEffort = "medium";
-  if (modelName && modelName.toLowerCase().includes("gpt-5-pro")) {
+  if (deploymentName && requiresHighReasoningEffort(deploymentName)) {
     reasoningEffort = "high";
-    console.log(`[${requestId}] Detected gpt-5-pro, using 'high' reasoning effort`);
+    console.log(`[${requestId}] Detected ${deploymentName} deployment, using 'high' reasoning effort`);
   }
   const requestBody = {
-    model: modelName,
+    model: deploymentName,
     instructions: systemPrompt,
     input: userPrompt,
-    max_output_tokens: 1500,
-    temperature: 0.7,
+    max_output_tokens: 3e3,
     reasoning: {
       effort: reasoningEffort
       // Dynamically set based on model
@@ -4595,9 +5029,8 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
     }
   };
   console.log(`[${requestId}] Request config:`, {
-    model: requestBody.model,
+    deployment: deploymentName,
     max_output_tokens: requestBody.max_output_tokens,
-    temperature: requestBody.temperature,
     reasoning_effort: requestBody.reasoning.effort,
     verbosity: requestBody.text.verbosity
   });
@@ -4795,8 +5228,7 @@ function buildEnhancedSynthesis(cardsInfo, themes, userQuestion, context) {
   return section;
 }
 function appendGenericReversalReminder(readingText, cardsInfo, themes) {
-  if (!readingText)
-    return readingText;
+  if (!readingText) return readingText;
   const hasReversed = Array.isArray(cardsInfo) && cardsInfo.some(
     (card) => (card?.orientation || "").toLowerCase() === "reversed"
   );
@@ -4820,14 +5252,27 @@ function jsonResponse(data, init = {}) {
     }
   });
 }
-var onRequestGet, onRequestPost, SPREAD_READING_BUILDERS;
+var SPREAD_NAME_MAP, onRequestGet, onRequestPost, SPREAD_READING_BUILDERS;
 var init_tarot_reading = __esm({
   "api/tarot-reading.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     init_spreadAnalysis();
     init_narrativeBuilder();
     init_narrativeSpine();
     init_contextDetection();
+    init_minorMeta();
+    SPREAD_NAME_MAP = {
+      "Celtic Cross (Classic 10-Card)": { key: "celtic", count: 10 },
+      "Three-Card Story (Past \xB7 Present \xB7 Future)": { key: "threeCard", count: 3 },
+      "Five-Card Clarity": { key: "fiveCard", count: 5 },
+      "One-Card Insight": { key: "single", count: 1 },
+      "Relationship Snapshot": { key: "relationship", count: 3 },
+      "Decision / Two-Path": { key: "decision", count: 5 }
+    };
+    __name(getSpreadDefinition, "getSpreadDefinition");
+    __name(getExpectedCardCount, "getExpectedCardCount");
+    __name(getSpreadKey, "getSpreadKey");
+    __name(requiresHighReasoningEffort, "requiresHighReasoningEffort");
     onRequestGet = /* @__PURE__ */ __name(async ({ env }) => {
       return jsonResponse({
         status: "ok",
@@ -4874,7 +5319,7 @@ var init_tarot_reading = __esm({
         const context = inferContext(userQuestion, analysis.spreadKey);
         console.log(`[${requestId}] Context inferred: ${context}`);
         let reading;
-        let usedAzureGPT5 = false;
+        let usedAzureGPT = false;
         if (env && env.AZURE_OPENAI_API_KEY && env.AZURE_OPENAI_ENDPOINT && env.AZURE_OPENAI_GPT5_MODEL) {
           console.log(`[${requestId}] Azure OpenAI GPT-5 credentials found, attempting generation...`);
           console.log(`[${requestId}] Azure config:`, {
@@ -4894,7 +5339,7 @@ var init_tarot_reading = __esm({
             }, requestId);
             const azureTime = Date.now() - azureStart;
             console.log(`[${requestId}] Azure GPT-5 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
-            usedAzureGPT5 = true;
+            usedAzureGPT = true;
           } catch (err) {
             const azureTime = Date.now() - azureStart;
             console.error(`[${requestId}] Azure OpenAI GPT-5 generation failed after ${azureTime}ms, falling back to local composer:`, {
@@ -4931,7 +5376,7 @@ var init_tarot_reading = __esm({
           }
         }
         const totalTime = Date.now() - startTime;
-        const provider = usedAzureGPT5 ? "azure-gpt5" : "local";
+        const provider = usedAzureGPT ? "azure-gpt5" : "local";
         console.log(`[${requestId}] Request completed successfully in ${totalTime}ms using provider: ${provider}`);
         console.log(`[${requestId}] === TAROT READING REQUEST END ===`);
         return jsonResponse({
@@ -4962,38 +5407,37 @@ var init_tarot_reading = __esm({
       }
     }, "onRequestPost");
     __name(performSpreadAnalysis, "performSpreadAnalysis");
-    __name(getSpreadKey, "getSpreadKey");
     __name(readRequestBody, "readRequestBody");
     __name(validatePayload, "validatePayload");
     __name(generateWithAzureGPT5Responses, "generateWithAzureGPT5Responses");
     SPREAD_READING_BUILDERS = {
-      celtic: ({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildCelticCrossReading({
+      celtic: /* @__PURE__ */ __name(({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildCelticCrossReading({
         cardsInfo,
         userQuestion,
         reflectionsText,
         celticAnalysis: spreadAnalysis,
         themes,
         context
-      }) : null,
-      threeCard: ({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildThreeCardReading({
+      }) : null, "celtic"),
+      threeCard: /* @__PURE__ */ __name(({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildThreeCardReading({
         cardsInfo,
         userQuestion,
         reflectionsText,
         threeCardAnalysis: spreadAnalysis,
         themes,
         context
-      }) : null,
-      fiveCard: ({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildFiveCardReading({
+      }) : null, "threeCard"),
+      fiveCard: /* @__PURE__ */ __name(({ spreadAnalysis, cardsInfo, userQuestion, reflectionsText, themes, context }) => spreadAnalysis ? buildFiveCardReading({
         cardsInfo,
         userQuestion,
         reflectionsText,
         fiveCardAnalysis: spreadAnalysis,
         themes,
         context
-      }) : null,
-      relationship: ({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildRelationshipReading({ cardsInfo, userQuestion, reflectionsText, themes, context }),
-      decision: ({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildDecisionReading({ cardsInfo, userQuestion, reflectionsText, themes, context }),
-      single: ({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildSingleCardReading({ cardsInfo, userQuestion, reflectionsText, themes, context })
+      }) : null, "fiveCard"),
+      relationship: /* @__PURE__ */ __name(({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildRelationshipReading({ cardsInfo, userQuestion, reflectionsText, themes, context }), "relationship"),
+      decision: /* @__PURE__ */ __name(({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildDecisionReading({ cardsInfo, userQuestion, reflectionsText, themes, context }), "decision"),
+      single: /* @__PURE__ */ __name(({ cardsInfo, userQuestion, reflectionsText, themes, context }) => buildSingleCardReading({ cardsInfo, userQuestion, reflectionsText, themes, context }), "single")
     };
     __name(composeReadingEnhanced, "composeReadingEnhanced");
     __name(generateReadingFromAnalysis, "generateReadingFromAnalysis");
@@ -5011,8 +5455,7 @@ async function readJson(request) {
     return {};
   }
   const text = await request.text();
-  if (!text)
-    return {};
+  if (!text) return {};
   try {
     return JSON.parse(text);
   } catch {
@@ -5020,8 +5463,7 @@ async function readJson(request) {
   }
 }
 function sanitizeText(text) {
-  if (typeof text !== "string")
-    return "";
+  if (typeof text !== "string") return "";
   return text.trim().slice(0, 4e3);
 }
 async function generateWithAzureGptMiniTTS(env, { text, context, voice, speed }) {
@@ -5033,7 +5475,7 @@ async function generateWithAzureGptMiniTTS(env, { text, context, voice, speed })
   const instructions = INSTRUCTION_TEMPLATES[context] || INSTRUCTION_TEMPLATES.default;
   const validVoices = ["nova", "shimmer", "alloy", "echo", "fable", "onyx"];
   const selectedVoice = validVoices.includes(voice) ? voice : "nova";
-  const selectedSpeed = speed !== void 0 ? Math.max(0.25, Math.min(4, speed)) : 0.95;
+  const selectedSpeed = speed !== void 0 ? Math.max(0.25, Math.min(4, speed)) : 1.1;
   const url = useV1Format ? `${endpoint}/openai/v1/audio/speech?api-version=${apiVersion}` : `${endpoint}/openai/deployments/${deployment}/audio/speech?api-version=${apiVersion}`;
   const payload = {
     input: text,
@@ -5078,7 +5520,7 @@ async function generateWithAzureGptMiniTTSStream(env, { text, context, voice, sp
   const instructions = INSTRUCTION_TEMPLATES[context] || INSTRUCTION_TEMPLATES.default;
   const validVoices = ["nova", "shimmer", "alloy", "echo", "fable", "onyx"];
   const selectedVoice = validVoices.includes(voice) ? voice : "nova";
-  const selectedSpeed = speed !== void 0 ? Math.max(0.25, Math.min(4, speed)) : 0.95;
+  const selectedSpeed = speed !== void 0 ? Math.max(0.25, Math.min(4, speed)) : 1.1;
   const url = useV1Format ? `${endpoint}/openai/v1/audio/speech?api-version=${apiVersion}` : `${endpoint}/openai/deployments/${deployment}/audio/speech?api-version=${apiVersion}`;
   const payload = {
     input: text,
@@ -5188,7 +5630,7 @@ function resolveEnv(env, key) {
 var onRequestGet2, onRequestPost2, INSTRUCTION_TEMPLATES;
 var init_tts = __esm({
   "api/tts.js"() {
-    init_functionsRoutes_0_2857290313673917();
+    init_functionsRoutes_0_4493944495300306();
     onRequestGet2 = /* @__PURE__ */ __name(async ({ env }) => {
       const azureEndpoint = resolveEnv(env, "AZURE_OPENAI_TTS_ENDPOINT") || resolveEnv(env, "AZURE_OPENAI_ENDPOINT");
       const azureKey = resolveEnv(env, "AZURE_OPENAI_TTS_API_KEY") || resolveEnv(env, "AZURE_OPENAI_API_KEY");
@@ -5294,10 +5736,10 @@ var init_tts = __esm({
   }
 });
 
-// ../.wrangler/tmp/pages-CNuxh6/functionsRoutes-0.2857290313673917.mjs
+// ../.wrangler/tmp/pages-eVhSQz/functionsRoutes-0.4493944495300306.mjs
 var routes;
-var init_functionsRoutes_0_2857290313673917 = __esm({
-  "../.wrangler/tmp/pages-CNuxh6/functionsRoutes-0.2857290313673917.mjs"() {
+var init_functionsRoutes_0_4493944495300306 = __esm({
+  "../.wrangler/tmp/pages-eVhSQz/functionsRoutes-0.4493944495300306.mjs"() {
     init_tarot_reading();
     init_tarot_reading();
     init_tts();
@@ -5336,10 +5778,10 @@ var init_functionsRoutes_0_2857290313673917 = __esm({
 });
 
 // ../node_modules/wrangler/templates/pages-template-worker.ts
-init_functionsRoutes_0_2857290313673917();
+init_functionsRoutes_0_4493944495300306();
 
 // ../node_modules/path-to-regexp/dist.es2015/index.js
-init_functionsRoutes_0_2857290313673917();
+init_functionsRoutes_0_4493944495300306();
 function lexer(str) {
   var tokens = [];
   var i = 0;
@@ -5749,9 +6191,9 @@ var pages_template_worker_default = {
           },
           env,
           waitUntil: workerContext.waitUntil.bind(workerContext),
-          passThroughOnException: () => {
+          passThroughOnException: /* @__PURE__ */ __name(() => {
             isFailOpen = true;
-          }
+          }, "passThroughOnException")
         };
         const response = await handler(context);
         if (!(response instanceof Response)) {

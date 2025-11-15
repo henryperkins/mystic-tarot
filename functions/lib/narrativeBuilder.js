@@ -940,6 +940,34 @@ function buildCrossChecksSection(crossChecks, themes) {
   return section;
 }
 
+/**
+ * Generate synthesis prose from cross-check structured data
+ */
+function buildCrossCheckSynthesis(crossCheck) {
+  const { position1, position2, elementalRelationship, orientationAlignment, alignmentType } = crossCheck;
+
+  let synthesis = `${position1.name} (${position1.card} ${position1.orientation}) and ${position2.name} (${position2.card} ${position2.orientation}): `;
+
+  // Add elemental dynamic description
+  if (elementalRelationship?.description) {
+    synthesis += elementalRelationship.description + '. ';
+  }
+
+  // Add alignment-based interpretation
+  const alignmentPhrases = {
+    'unified': 'Both cards share the same elemental energy, creating a unified and intensified theme.',
+    'harmonious': 'These positions work together harmoniously, supporting the same trajectory.',
+    'evolving-support': 'The supportive elemental flow suggests evolution from one state to the next.',
+    'parallel-tension': 'Both positions share orientation, indicating tension that runs consistently through this axis.',
+    'dynamic-shift': 'Different orientations signal a dynamic shift or transformation between these positions.',
+    'complex': 'The relationship between these positions shows nuanced dynamics worth exploring.'
+  };
+
+  synthesis += alignmentPhrases[alignmentType] || 'These positions relate in complex ways.';
+
+  return synthesis;
+}
+
 function formatCrossCheck(label, crossCheck, themes) {
   if (!crossCheck) {
     return `${label}: No comparative insight available.`;
@@ -963,7 +991,7 @@ function formatCrossCheck(label, crossCheck, themes) {
 
   const parts = [];
   if (indicator) parts.push(indicator);
-  parts.push(crossCheck.synthesis.trim());
+  parts.push(buildCrossCheckSynthesis(crossCheck).trim());
   if (reversalNotes.length > 0) {
     parts.push(reversalNotes.join(' '));
   }
@@ -1819,9 +1847,52 @@ function buildSystemPrompt(spreadKey, themes, context) {
     );
   }
 
+  // Build reversal lens section with strong enforcement when reversed cards are present
+  const reversalSection = [''];
+
+  if (themes.reversalCount > 0 && themes.reversalFramework !== 'none') {
+    // CRITICAL: Enforce consistent reversal framework across entire reading
+    reversalSection.push(
+      '## REVERSAL INTERPRETATION FRAMEWORK — MANDATORY',
+      '',
+      `You MUST interpret ALL ${themes.reversalCount} reversed card(s) in this reading using the "${themes.reversalDescription.name}" lens exclusively.`,
+      '',
+      `Framework Definition: ${themes.reversalDescription.description}`,
+      '',
+      `Guidance: ${themes.reversalDescription.guidance}`,
+      ''
+    );
+
+    // Include ALL examples to reinforce consistent application
+    if (themes.reversalDescription.examples && Object.keys(themes.reversalDescription.examples).length > 0) {
+      reversalSection.push('Concrete examples for this framework:');
+      Object.entries(themes.reversalDescription.examples).forEach(([card, interpretation]) => {
+        reversalSection.push(`• ${card} reversed: ${interpretation}`);
+      });
+      reversalSection.push('');
+    }
+
+    reversalSection.push(
+      'CRITICAL CONSTRAINTS:',
+      '• Do NOT mix different reversal interpretations within this reading',
+      '• Do NOT interpret one reversal as "blocked" and another as "internalized" unless the framework is Contextual',
+      '• Every reversed card must align with the same interpretive lens',
+      '• Maintain framework consistency even when it creates narrative tension'
+    );
+  } else if (themes.reversalCount === 0) {
+    reversalSection.push(
+      `REVERSAL LENS: ${themes.reversalDescription.name} — All cards appear upright in this reading.`
+    );
+  } else {
+    // Fallback for edge cases
+    reversalSection.push(
+      `REVERSAL LENS: ${themes.reversalDescription.name} — ${themes.reversalDescription.description}`
+    );
+  }
+
   lines.push(
+    ...reversalSection,
     '',
-    `REVERSAL LENS: ${themes.reversalDescription.name} — ${themes.reversalDescription.description} (${themes.reversalDescription.guidance})`,
     'ETHICS: Emphasize choice, agency, and trajectory language; forbid deterministic guarantees or fatalism.',
     'ETHICS: Do NOT provide diagnosis or treatment, or directives about medical, mental health, legal, financial, or abuse-safety matters; instead, when those themes surface, gently suggest consulting qualified professionals or trusted support resources.'
   );
@@ -2248,7 +2319,10 @@ function buildPromptCrossChecks(crossChecks, themes) {
         .filter(Boolean)
         .join(' | ');
 
-      const parts = [`- ${label}: ${value.synthesis.trim()}`];
+      // Generate synthesis from structured data
+      const synthesis = buildCrossCheckSynthesis(value);
+
+      const parts = [`- ${label}: ${synthesis.trim()}`];
       if (positionsText) {
         parts.push(`(Positions: ${positionsText})`);
       }
