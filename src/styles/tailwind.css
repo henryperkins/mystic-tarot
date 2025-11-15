@@ -1,3 +1,6 @@
+/* Pull Mystic Tarot custom styles into the generated bundle */
+@import './tarot.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -28,6 +31,3 @@ body {
 .ai-panel-hint {
   @apply text-[11px] text-emerald-300/80 mt-3;
 }
-
-/* Pull Mystic Tarot custom styles into the generated bundle */
-@import './tarot.css';

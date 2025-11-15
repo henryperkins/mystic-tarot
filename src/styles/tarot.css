@@ -3,6 +3,46 @@ body {
   overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
+/* Light mode overrides */
+.light body {
+  background-color: #f8f9fa;
+  color: #020817;
+}
+
+.light .text-amber-50 {
+  color: #020817;
+}
+
+.light .bg-slate-950 {
+  background-color: #ffffff;
+}
+
+.light .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+}
+
+.light .modern-surface {
+  background-color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.light .tarot-card-shell {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  border-color: #fbbf24;
+}
+
+.light .tarot-card-back {
+  background: #f8f9fa;
+}
+
+.light .tarot-card-face {
+  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+  color: #020817;
+}
+
+/* Add more light mode classes as needed */
+
 html {
   scroll-behavior: smooth; /* Smooth scrolling for better UX */
 }
@@ -117,6 +157,7 @@ html {
       "outcome";
     grid-template-columns: 1fr;
     gap: 1.1rem;
+    padding: 0 0.5rem;
   }
 }
 
@@ -131,6 +172,7 @@ html {
       "advice   external"
       "hopesfears outcome";
     gap: 1.25rem;
+    padding: 0 0.75rem;
   }
 }
 
@@ -541,12 +583,13 @@ input[type="checkbox"]:focus-visible {
 }
 
 input[type="range"] {
-  height: 2.75rem; /* 44px */
+  height: 3rem; /* Increased for better touch */
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   width: 100%;
+  touch-action: manipulation;
 }
 
 input[type="range"]:focus {
@@ -576,19 +619,19 @@ input[type="range"]::-moz-range-track {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: #fcd34d; /* amber-300 */
   border-radius: 999px;
   border: 2px solid #020817;
   cursor: pointer;
-  margin-top: -9px;
+  margin-top: -11px;
   transition: transform 0.2s ease;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: #fcd34d; /* amber-300 */
   border-radius: 999px;
   border: 2px solid #020817;

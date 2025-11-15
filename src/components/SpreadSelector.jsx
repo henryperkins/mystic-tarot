@@ -128,7 +128,7 @@ export function SpreadSelector({
                     ✓ Selected
                   </span>
                 )}
-                <div className="pr-10">
+                <div className="pr-16">
                   <div className="font-serif font-semibold text-base text-amber-50">{spread.name}</div>
                   <p className="text-[clamp(0.85rem,2.4vw,0.95rem)] leading-snug text-amber-100/80 mt-1">
                     {spread.count} card{spread.count > 1 ? 's' : ''}

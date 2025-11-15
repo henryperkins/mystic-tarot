@@ -8,7 +8,9 @@ export function SettingsToggles({
   ambienceOn,
   setAmbienceOn,
   reversalFramework,
-  setReversalFramework
+  setReversalFramework,
+  theme,
+  setTheme
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const tileBaseClass =
@@ -90,9 +92,37 @@ export function SettingsToggles({
               Play soft background ambience sound during readings
             </span>
           </div>
+        <div>
+          <label
+            className={`${tileBaseClass} ${theme === 'light' ? 'border-emerald-400/50 shadow-inner shadow-emerald-900/30' : 'border-slate-700/60 hover:border-emerald-400/40'}`}
+          >
+            <input
+              id="theme-toggle"
+              type="checkbox"
+              checked={theme === 'light'}
+              onChange={event => setTheme(event.target.checked ? 'light' : 'dark')}
+              aria-describedby="theme-description"
+              className="sr-only"
+            />
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col items-start gap-2 xs:flex-row xs:items-center xs:justify-between">
+                <span className="text-amber-100/90 text-sm font-medium">Light Mode</span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs-plus ${theme === 'light' ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200' : 'bg-slate-800/60 border-slate-600/60 text-slate-300'}`}>
+                  {theme === 'light' ? 'Enabled' : 'Off'}
+                </span>
+              </div>
+              <p className="text-[clamp(0.85rem,2.4vw,0.95rem)] leading-snug text-amber-100/70">
+                Switch to a lighter theme for better visibility.
+              </p>
+            </div>
+          </label>
+          <span id="theme-description" className="sr-only">
+            Toggle between dark and light theme
+          </span>
         </div>
+      </div>
 
-        <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 space-y-3">
+      <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 space-y-3">
           <div className="flex items-center gap-2 text-amber-100/80 text-xs sm:text-sm">
             <div className="flex items-center gap-1">
               <label htmlFor="reversal-framework-select" className="whitespace-nowrap">

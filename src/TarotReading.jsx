@@ -12,6 +12,7 @@ import { ReadingGrid } from './components/ReadingGrid';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { StepProgress } from './components/StepProgress';
 import { HelperToggle } from './components/HelperToggle';
+import { useNavigate } from 'react-router-dom'; // Assuming React Router for navigation, adjust if needed
 import { getDeckPool, computeSeed, computeRelationships, drawSpread } from './lib/deck';
 import {
   initAudio,
@@ -66,12 +67,19 @@ export default function TarotReading() {
     }
     return false;
   });
+  const [theme, setTheme] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('tarot-theme') || 'dark';
+    }
+    return 'dark';
+  });
   const [reversalFramework, setReversalFramework] = useState(null);
   const [apiHealthBanner, setApiHealthBanner] = useState(null);
   const [ttsState, setTtsState] = useState(() => getCurrentTTSState());
   const [ttsAnnouncement, setTtsAnnouncement] = useState('');
   const [journalStatus, setJournalStatus] = useState(null);
   const [minorsFallbackWarning, setMinorsFallbackWarning] = useState(false);
+  const navigate = useNavigate(); // For journal navigation
 
   const knockTimesRef = useRef([]);
   const shuffleTimeoutRef = useRef(null);
@@ -132,6 +140,17 @@ export default function TarotReading() {
       localStorage.setItem('tarot-ambience-enabled', ambienceOn.toString());
     }
   }, [ambienceOn]);
+
+  // Sync theme preference with the DOM and localStorage
+  useEffect(() => {
+    const root = typeof document !== 'undefined' ? document.documentElement : null;
+    if (root) {
+      root.classList.toggle('light', theme === 'light');
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('tarot-theme', theme);
+    }
+  }, [theme]);
 
   // Check API health on mount
   useEffect(() => {
@@ -469,6 +488,10 @@ export default function TarotReading() {
 
   const handleNarrationStop = () => {
     stopNarration();
+  };
+
+  const handleViewJournal = () => {
+    navigate('/journal'); // Navigate to journal view
   };
 
   const shuffle = () => {
@@ -1075,6 +1098,8 @@ export default function TarotReading() {
                     setAmbienceOn={setAmbienceOn}
                     reversalFramework={reversalFramework}
                     setReversalFramework={setReversalFramework}
+                    theme={theme}
+                    setTheme={setTheme}
                   />
                   <p className="sr-only">
                     Reader voice uses generated audio when enabled. Table ambience plays soft background sound when enabled.
@@ -1096,6 +1121,7 @@ export default function TarotReading() {
                     applyCut={applyCut}
                     knocksCount={Math.min((knockTimesRef.current || []).length, 3)}
                     deckSize={deckSize}
+                    onSkip={() => shuffle()} // Skip ritual and draw cards
                   />
                 </section>
               </div>
@@ -1342,6 +1368,13 @@ export default function TarotReading() {
                         >
                           <span className="hidden xs:inline">Save this narrative to your journal</span>
                           <span className="xs:hidden">Save to journal</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleViewJournal}
+                          className="px-3 sm:px-4 py-2 rounded-lg bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs sm:text-sm hover:bg-amber-500/25 hover:text-amber-100 transition"
+                        >
+                          View Journal
                         </button>
                       </div>
                     )}

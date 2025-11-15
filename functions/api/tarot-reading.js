@@ -62,7 +62,7 @@ export const onRequestGet = async ({ env }) => {
   // Health check endpoint
   return jsonResponse({
     status: 'ok',
-    provider: env?.AZURE_OPENAI_GPT5_MODEL ? 'azure-gpt5.1' : 'local',
+    provider: env?.AZURE_OPENAI_GPT5_MODEL ? 'azure-gpt5' : 'local',
     timestamp: new Date().toISOString()
   });
 };
@@ -114,12 +114,12 @@ export const onRequestPost = async ({ request, env }) => {
     const context = inferContext(userQuestion, analysis.spreadKey);
     console.log(`[${requestId}] Context inferred: ${context}`);
 
-    // STEP 2: Generate reading (Azure GPT-5.1 via Responses API or local)
+    // STEP 2: Generate reading (Azure GPT-5 via Responses API or local)
     let reading;
     let usedAzureGPT = false;
 
     if (env && env.AZURE_OPENAI_API_KEY && env.AZURE_OPENAI_ENDPOINT && env.AZURE_OPENAI_GPT5_MODEL) {
-      console.log(`[${requestId}] Azure OpenAI GPT-5.1 credentials found, attempting generation...`);
+      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials found, attempting generation...`);
       console.log(`[${requestId}] Azure config:`, {
         endpoint: env.AZURE_OPENAI_ENDPOINT,
         model: env.AZURE_OPENAI_GPT5_MODEL,
@@ -137,17 +137,17 @@ export const onRequestPost = async ({ request, env }) => {
           context
         }, requestId);
         const azureTime = Date.now() - azureStart;
-        console.log(`[${requestId}] Azure GPT-5.1 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
+        console.log(`[${requestId}] Azure GPT-5 generation successful in ${azureTime}ms, reading length: ${reading?.length || 0}`);
         usedAzureGPT = true;
       } catch (err) {
         const azureTime = Date.now() - azureStart;
-        console.error(`[${requestId}] Azure OpenAI GPT-5.1 generation failed after ${azureTime}ms, falling back to local composer:`, {
+        console.error(`[${requestId}] Azure OpenAI GPT-5 generation failed after ${azureTime}ms, falling back to local composer:`, {
           error: err.message,
           stack: err.stack
         });
       }
     } else {
-      console.log(`[${requestId}] Azure OpenAI GPT-5.1 credentials not configured, using local composer`, {
+      console.log(`[${requestId}] Azure OpenAI GPT-5 credentials not configured, using local composer`, {
         hasApiKey: !!env?.AZURE_OPENAI_API_KEY,
         hasEndpoint: !!env?.AZURE_OPENAI_ENDPOINT,
         hasModel: !!env?.AZURE_OPENAI_GPT5_MODEL
@@ -183,7 +183,7 @@ export const onRequestPost = async ({ request, env }) => {
     // - themes: shared thematic summary
     // Frontend should trust these when present, and only fall back locally if missing.
     const totalTime = Date.now() - startTime;
-    const provider = usedAzureGPT ? 'azure-gpt5.1' : 'local';
+    const provider = usedAzureGPT ? 'azure-gpt5' : 'local';
 
     console.log(`[${requestId}] Request completed successfully in ${totalTime}ms using provider: ${provider}`);
     console.log(`[${requestId}] === TAROT READING REQUEST END ===`);
@@ -350,9 +350,9 @@ export function validatePayload({ spreadInfo, cardsInfo }) {
 }
 
 /**
- * Generate reading using Azure OpenAI GPT-5.1 via Responses API
+ * Generate reading using Azure OpenAI GPT-5/5.1 via Responses API
  *
- * The Responses API is the recommended API for GPT-5.1 models, bringing together
+ * The Responses API is the recommended API for GPT-5 family models, bringing together
  * the best capabilities from chat completions and assistants API.
  *
  * API Reference: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses
@@ -364,7 +364,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   // Responses API requires v1 path format with 'preview' API version
   const apiVersion = env.AZURE_OPENAI_API_VERSION || 'preview';
 
-  console.log(`[${requestId}] Building Azure GPT-5.1 prompts...`);
+  console.log(`[${requestId}] Building Azure GPT-5 prompts...`);
 
   // Build enhanced prompts using narrative builder
   const { systemPrompt, userPrompt } = buildEnhancedClaudePrompt({
@@ -384,17 +384,18 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   // Model is passed in the request body, NOT in the URL path
   const url = `${endpoint}/openai/v1/responses?api-version=${encodeURIComponent(apiVersion)}`;
 
-  console.log(`[${requestId}] Making Azure GPT-5.1 Responses API request to: ${url}`);
+  console.log(`[${requestId}] Making Azure GPT-5 Responses API request to: ${url}`);
   console.log(`[${requestId}] Using deployment: ${deploymentName}, api-version: ${apiVersion}`);
 
   // Dynamic reasoning effort based on model capabilities
-  // - gpt-5/gpt-5.1-pro: ONLY supports 'high'
-  // - gpt-5/gpt-5.1-codex: supports low/medium/high (not minimal)
+  // - gpt-5-pro: ONLY supports 'high' reasoning effort
+  // - gpt-5-codex: supports low/medium/high (not minimal)
+  // - gpt-5, gpt-5.1: support low/medium/high
   // - Other GPT-5 family models: support low/medium/high
   let reasoningEffort = 'medium'; // Default for most models
   if (deploymentName && requiresHighReasoningEffort(deploymentName)) {
     reasoningEffort = 'high';
-    console.log(`[${requestId}] Detected gpt-5/gpt-5.1 pro deployment, using 'high' reasoning effort`);
+    console.log(`[${requestId}] Detected ${deploymentName} deployment, using 'high' reasoning effort`);
   }
 
   // Responses API uses a different structure than Chat Completions
@@ -434,7 +435,7 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   if (!response.ok) {
     const errText = await response.text().catch(() => '');
     console.error(`[${requestId}] Azure Responses API error response:`, errText);
-    throw new Error(`Azure OpenAI GPT-5.1 Responses API error ${response.status}: ${errText}`);
+    throw new Error(`Azure OpenAI GPT-5 Responses API error ${response.status}: ${errText}`);
   }
 
   const data = await response.json();
@@ -468,12 +469,12 @@ async function generateWithAzureGPT5Responses(env, { spreadInfo, cardsInfo, user
   }
 
   if (!content || typeof content !== 'string' || !content.trim()) {
-    console.error(`[${requestId}] Empty or invalid response from Azure GPT-5.1:`, {
+    console.error(`[${requestId}] Empty or invalid response from Azure GPT-5:`, {
       hasOutput: !!data.output,
       outputLength: data.output?.length,
       status: data.status
     });
-    throw new Error('Empty response from Azure OpenAI GPT-5.1 Responses API');
+    throw new Error('Empty response from Azure OpenAI GPT-5 Responses API');
 }
 
   console.log(`[${requestId}] Generated reading length: ${content.length} characters`);

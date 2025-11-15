@@ -9,7 +9,8 @@ export function RitualControls({
   hasCut,
   applyCut,
   knocksCount = 0,
-  deckSize = 22
+  deckSize = 22,
+  onSkip
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -96,6 +97,15 @@ export function RitualControls({
         </div>
       </div>
 
+      <div className="flex justify-center mt-4">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="px-4 py-2 rounded-lg border border-amber-300/50 text-amber-100/80 text-xs sm:text-sm hover:text-amber-50 hover:border-amber-200/70 transition"
+        >
+          Skip Ritual
+        </button>
+      </div>
       {/* Subtle helper line */}
       <div className="text-amber-100/85 text-xs-plus sm:text-sm mt-4 mobile-hide">
         Ritual actions add intention, mirroring real readings where your energy guides the cards.
