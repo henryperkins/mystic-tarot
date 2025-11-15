@@ -9,6 +9,7 @@ import { QuestionInput } from './components/QuestionInput';
 import { SettingsToggles } from './components/SettingsToggles';
 import { RitualControls } from './components/RitualControls';
 import { ReadingGrid } from './components/ReadingGrid';
+import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { getDeckPool, computeSeed, computeRelationships, drawSpread } from './lib/deck';
 import {
   initAudio,
@@ -1228,23 +1229,27 @@ export default function TarotReading() {
                </p>
              </div>
            )}
-                {/* Render normalized text as natural paragraphs with improved readability */}
-                <div className="text-amber-100 leading-relaxed space-y-2 sm:space-y-3 md:space-y-4 max-w-prose mx-auto text-left">
-                  {personalReading.paragraphs && personalReading.paragraphs.length > 0 ? (
-                    personalReading.paragraphs.map((para, idx) => (
-                      <p
-                        key={idx}
-                        className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose"
-                      >
-                        {para}
+                {/* Render Markdown when available, otherwise fall back to normalized paragraphs */}
+                {personalReading.hasMarkdown ? (
+                  <MarkdownRenderer content={personalReading.raw} />
+                ) : (
+                  <div className="text-amber-100 leading-relaxed space-y-2 sm:space-y-3 md:space-y-4 max-w-prose mx-auto text-left">
+                    {personalReading.paragraphs && personalReading.paragraphs.length > 0 ? (
+                      personalReading.paragraphs.map((para, idx) => (
+                        <p
+                          key={idx}
+                          className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose"
+                        >
+                          {para}
+                        </p>
+                      ))
+                    ) : (
+                      <p className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose whitespace-pre-line">
+                        {personalReading.normalized || personalReading.raw || ''}
                       </p>
-                    ))
-                  ) : (
-                    <p className="text-[0.9rem] sm:text-base md:text-lg leading-relaxed md:leading-loose whitespace-pre-line">
-                      {personalReading.normalized || personalReading.raw || ''}
-                    </p>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4">
                   {canSaveReading && (
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">

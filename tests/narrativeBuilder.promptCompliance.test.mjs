@@ -174,17 +174,16 @@ describe('Celtic Cross narrative + Claude prompt compliance', () => {
 
     // Headings & structure
     [
-      '**THE HEART OF THE MATTER**',
-      '**THE TIMELINE**',
-      '**CONSCIOUSNESS FLOW**',
-      '**THE STAFF**',
-      '**KEY RELATIONSHIPS**',
-      '**SYNTHESIS & GUIDANCE**',
-      '**SYNTHESIS & GUIDANCE**' // tolerate either HTML-escaped or raw ampersand
-    ].forEach(heading => {
+      ['### The Heart of the Matter (Nucleus)'],
+      ['### The Timeline (Horizontal Axis)'],
+      ['### Consciousness Flow (Vertical Axis)'],
+      ['### The Staff (Context & Trajectory)'],
+      ['### Key Relationships'],
+      ['### Synthesis & Guidance', '### Synthesis &amp; Guidance'] // tolerate either HTML-escaped or raw ampersand
+    ].forEach(headings => {
       assert.ok(
-        reading.includes(heading),
-        `Celtic Cross reading should include section heading: ${heading}`
+        headings.some(heading => reading.includes(heading)),
+        `Celtic Cross reading should include section heading: ${headings[0]}`
       );
     });
 
@@ -284,12 +283,12 @@ describe('Three-Card narrative + Claude prompt compliance', () => {
     });
 
     assert.ok(
-      reading.includes('**THE STORY**'),
-      'Three-card reading should include THE STORY section'
+      reading.includes('### The Story'),
+      'Three-card reading should include The Story section'
     );
     assert.ok(
-      reading.includes('**GUIDANCE**'),
-      'Three-card reading should include GUIDANCE section'
+      reading.includes('### Guidance'),
+      'Three-card reading should include Guidance section'
     );
 
     assertAgencyForward(reading);

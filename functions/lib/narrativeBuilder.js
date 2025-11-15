@@ -823,7 +823,7 @@ function buildNucleusSection(nucleus, cardsInfo, themes, context) {
   const present = cardsInfo[0];
   const challenge = cardsInfo[1];
 
-  let section = `**THE HEART OF THE MATTER** (Nucleus)\n\n`;
+  let section = `### The Heart of the Matter (Nucleus)\n\n`;
 
   const presentPosition = present.position || 'Present — core situation (Card 1)';
   const challengePosition = challenge.position || 'Challenge — crossing / tension (Card 2)';
@@ -841,7 +841,7 @@ function buildTimelineSection(timeline, cardsInfo, themes, context) {
   const present = cardsInfo[0];
   const future = cardsInfo[3];
 
-  let section = `**THE TIMELINE** (Horizontal Axis)\n\n`;
+  let section = `### The Timeline (Horizontal Axis)\n\n`;
 
   const options = getPositionOptions(themes, context);
 
@@ -891,7 +891,7 @@ function buildConsciousnessSection(consciousness, cardsInfo, themes, context) {
   const subconscious = cardsInfo[5];
   const conscious = cardsInfo[4];
 
-  let section = `**CONSCIOUSNESS FLOW** (Vertical Axis)\n\n`;
+  let section = `### Consciousness Flow (Vertical Axis)\n\n`;
 
   section += `${buildPositionCardText(subconscious, subconscious.position || 'Subconscious — roots / hidden forces (Card 6)', getPositionOptions(themes, context))}\n\n`;
   section += `${buildPositionCardText(conscious, conscious.position || 'Conscious — goals & focus (Card 5)', getPositionOptions(themes, context))}\n\n`;
@@ -913,7 +913,7 @@ function buildStaffSection(staff, cardsInfo, themes, context) {
   const hopesFears = cardsInfo[8];
   const outcome = cardsInfo[9];
 
-  let section = `**THE STAFF** (Context & Trajectory)\n\n`;
+  let section = `### The Staff (Context & Trajectory)\n\n`;
 
   section += `${buildPositionCardText(self, self.position || 'Self / Advice — how to meet this (Card 7)', getPositionOptions(themes, context))}\n\n`;
   section += `${buildPositionCardText(external, external.position || 'External Influences — people & environment (Card 8)', getPositionOptions(themes, context))}\n\n`;
@@ -926,7 +926,7 @@ function buildStaffSection(staff, cardsInfo, themes, context) {
 }
 
 function buildCrossChecksSection(crossChecks, themes) {
-  let section = `**KEY RELATIONSHIPS**\n\n`;
+  let section = `### Key Relationships\n\n`;
 
   section += 'This overview shows how core positions interact and compare.\n\n';
 
@@ -972,11 +972,11 @@ function formatCrossCheck(label, crossCheck, themes) {
 }
 
 function buildReflectionsSection(reflectionsText) {
-  return `**YOUR REFLECTIONS**\n\nThis reflection shows how this reading lands in your lived experience.\n\n${reflectionsText.trim()}\n\nYour intuitive impressions are valid and add personal meaning to this reading.`;
+  return `### Your Reflections\n\nThis reflection shows how this reading lands in your lived experience.\n\n${reflectionsText.trim()}\n\nYour intuitive impressions are valid and add personal meaning to this reading.`;
 }
 
 function buildSynthesisSection(cardsInfo, themes, celticAnalysis, userQuestion, context) {
-  let section = `**SYNTHESIS & GUIDANCE**\n\n`;
+  let section = `### Synthesis & Guidance\n\n`;
 
   section += 'This synthesis shows how the spread integrates into actionable guidance.\n\n';
 
@@ -1053,7 +1053,7 @@ export function buildFiveCardReading({
   const positionOptions = getPositionOptions(themes, context);
 
   // Core + Challenge section
-  let coreSection = `**FIVE-CARD CLARITY — CORE & CHALLENGE**\n\n`;
+  let coreSection = `### Five-Card Clarity — Core & Challenge\n\n`;
   coreSection += buildPositionCardText(
     core,
     core.position || 'Core of the matter',
@@ -1084,7 +1084,7 @@ export function buildFiveCardReading({
   }).text);
 
   // Hidden influence
-  let hiddenSection = `**HIDDEN INFLUENCE**\n\n`;
+  let hiddenSection = `### Hidden Influence\n\n`;
   const hiddenPosition = hidden.position || 'Hidden / subconscious influence';
   const hiddenConnector = getConnector(hiddenPosition, 'toPrev');
   const hiddenText = buildPositionCardText(
@@ -1099,7 +1099,7 @@ export function buildFiveCardReading({
   }).text);
 
   // Support
-  let supportSection = `**SUPPORTING ENERGIES**\n\n`;
+  let supportSection = `### Supporting Energies\n\n`;
   const supportPosition = support.position || 'Support / helpful energy';
   const supportConnector = getConnector(supportPosition, 'toPrev');
   const supportText = buildPositionCardText(
@@ -1114,7 +1114,7 @@ export function buildFiveCardReading({
   }).text);
 
   // Direction
-  let directionSection = `**DIRECTION ON YOUR CURRENT PATH**\n\n`;
+  let directionSection = `### Direction on Your Current Path\n\n`;
   const directionPosition = direction.position || 'Likely direction on current path';
   const directionConnector = getConnector(directionPosition, 'toPrev');
   const directionText = buildPositionCardText(
@@ -1177,7 +1177,7 @@ export function buildRelationshipReading({
   let reversalReminderEmbedded = false;
 
   // YOU AND THEM
-  let youThem = `**YOU AND THEM**\n\n`;
+  let youThem = `### You and Them\n\n`;
   const dyadCards = [youCard, themCard].filter(Boolean);
 
   if (youCard) {
@@ -1249,7 +1249,7 @@ export function buildRelationshipReading({
 
   // THE CONNECTION
   if (connectionCard) {
-    let connection = `**THE CONNECTION**\n\n`;
+    let connection = `### The Connection\n\n`;
     connection += 'This position shows what the bond is asking for right now.\n\n';
     const connectionPosition = connectionCard.position || 'The connection / shared lesson';
     const connectionConnector = getConnector(connectionPosition, 'toPrev');
@@ -1283,7 +1283,7 @@ export function buildRelationshipReading({
   const primaryGuidanceCards = [dynamicsCard, outcomeCard].filter(Boolean);
   const fallbackGuidanceCard = primaryGuidanceCards[0] || connectionCard || themCard || youCard;
 
-  let guidance = `**GUIDANCE FOR THIS CONNECTION**\n\n`;
+  let guidance = `### Guidance for This Connection\n\n`;
   guidance += 'This guidance shows how to participate with agency, honesty, and care.\n\n';
 
   if (fallbackGuidanceCard) {
@@ -1499,7 +1499,7 @@ export function buildDecisionReading({
   const options = getPositionOptions(themes, context);
 
   // THE CHOICE
-  let choice = `**THE CHOICE**\n\n`;
+  let choice = `### The Choice\n\n`;
   choice += buildPositionCardText(
     heart,
     heart.position || 'Heart of the decision',
@@ -1514,7 +1514,7 @@ export function buildDecisionReading({
   );
 
   // PATH A
-  let aSection = `**PATH A**\n\n`;
+  let aSection = `### Path A\n\n`;
   const pathAPosition = pathA.position || 'Path A — energy & likely outcome';
   const pathAConnector = getConnector(pathAPosition, 'toPrev');
   const pathAText = buildPositionCardText(
@@ -1532,7 +1532,7 @@ export function buildDecisionReading({
   );
 
   // PATH B
-  let bSection = `**PATH B**\n\n`;
+  let bSection = `### Path B\n\n`;
   const pathBPosition = pathB.position || 'Path B — energy & likely outcome';
   const pathBConnector = getConnector(pathBPosition, 'toPrev');
   const pathBText = buildPositionCardText(
@@ -1550,7 +1550,7 @@ export function buildDecisionReading({
   );
 
   // CLARITY + AGENCY
-  let clarity = `**CLARITY + AGENCY**\n\n`;
+  let clarity = `### Clarity + Agency\n\n`;
 
   if (clarifier) {
     const clarifierPosition = clarifier.position || 'What clarifies the best path';
@@ -1614,13 +1614,13 @@ export function buildSingleCardReading({
   context
 }) {
   if (!Array.isArray(cardsInfo) || cardsInfo.length === 0 || !cardsInfo[0]) {
-    return '**ONE-CARD INSIGHT**\n\nNo card data was provided. Please draw at least one card to receive a focused message.';
+    return '### One-Card Insight\n\nNo card data was provided. Please draw at least one card to receive a focused message.';
   }
 
   const card = cardsInfo[0];
   const options = getPositionOptions(themes, context);
 
-  let narrative = `**ONE-CARD INSIGHT**\n\n`;
+  let narrative = `### One-Card Insight\n\n`;
 
   if (userQuestion && userQuestion.trim()) {
     narrative += `Focusing on your question "${userQuestion.trim()}", this card offers a snapshot of guidance in this moment.\n\n`;
@@ -1642,7 +1642,7 @@ export function buildSingleCardReading({
     "In simple terms: notice what this theme is asking you to acknowledge (WHAT), reflect on why it might be surfacing now (WHY), and choose one small, aligned next step that honors your agency (WHAT'S NEXT). Therefore, treat this insight as a living moment, not a fixed verdict—a trajectory you actively shape.";
 
   if (reflectionsText && reflectionsText.trim()) {
-    narrative += `\n\n**Your Reflections**\n\n${reflectionsText.trim()}`;
+    narrative += `\n\n### Your Reflections\n\n${reflectionsText.trim()}`;
   }
 
   const validation = validateReadingNarrative(narrative);
@@ -1668,7 +1668,7 @@ export function buildThreeCardReading({
   const [past, present, future] = cardsInfo;
   const options = getPositionOptions(themes, context);
 
-  let narrative = `**THE STORY**\n\n`;
+  let narrative = `### The Story\n\n`;
 
   // Past card
   narrative += `${buildPositionCardText(past, past.position || 'Past — influences that led here', options)}\n\n`;
@@ -1706,7 +1706,7 @@ export function buildThreeCardReading({
 }
 
 function buildThreeCardSynthesis(cardsInfo, themes, userQuestion, context) {
-  let section = `**GUIDANCE**\n\n`;
+  let section = `### Guidance\n\n`;
 
   if (context && context !== 'general') {
     section += `Focus: Interpreting the path ahead through ${getContextDescriptor(context)}.\n\n`;
@@ -1798,7 +1798,8 @@ function buildSystemPrompt(spreadKey, themes, context) {
     '- Deliver 5-7 flowing paragraphs separated by blank lines.',
     '- DEPTH: Go beyond surface themes—explore nuanced dynamics, specific examples, and actionable micro-steps.',
     '- VARIETY: Vary your language when revisiting themes; use fresh metaphors and angles rather than repeating the same phrasing.',
-    '- CONCRETENESS: Include at least 2-3 specific, practical next steps the querent can take immediately.'
+    '- CONCRETENESS: Include at least 2-3 specific, practical next steps the querent can take immediately.',
+    '- FORMAT: Output in Markdown with `###` section headings, bold card names the first time they appear, and bullet lists for actionable steps. Avoid HTML or fenced code blocks.'
   ];
 
   if (spreadKey === 'celtic') {
@@ -1875,10 +1876,11 @@ function buildUserPrompt(spreadKey, cardsInfo, userQuestion, reflectionsText, th
   }
 
   // Instructions
-  prompt += `\nProvide a cohesive, flowing narrative (no bullet lists) that:
-- References specific cards and positions
+  prompt += `\nProvide a cohesive, flowing Markdown-formatted narrative that:
+- Starts each major beat with a ### heading summarizing the focus
+- References specific cards and positions (bold card names the first time they appear)
 - Integrates the thematic and elemental insights above
-- Offers practical, grounded, empowering guidance
+- Includes a short bullet list of actionable micro-steps before the final paragraph
 - Reminds the querent of their agency and free will
 Apply Minor Arcana interpretation rules to all non-Major cards.`;
 
